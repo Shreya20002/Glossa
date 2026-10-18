@@ -6,7 +6,7 @@
 
 # A permanent, unique ID for the app. Windows and macOS use it to recognise
 # Glossa across updates, so it must never change after the first release.
-appId: io.github.YOUR_GITHUB_USERNAME.glossa
+appId: io.github.shreya20002.glossa
 productName: Glossa
 copyright: Copyright © 2026 The Glossa Authors
 

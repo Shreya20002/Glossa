@@ -7,7 +7,7 @@ sales calls, classes, or practice runs — and tells you, live, how you're doing
 It listens only to your microphone, runs entirely on your computer, and never
 sends anything anywhere.
 
-[![CI](https://github.com/YOUR_GITHUB_USERNAME/glossa/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME/glossa/actions/workflows/ci.yml)
+[![CI](https://github.com/Shreya20002/glossa/actions/workflows/ci.yml/badge.svg)](https://github.com/Shreya20002/glossa/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 > 🚧 **Status: pre-release.** Glossa is being built in the open. There is no
@@ -45,7 +45,7 @@ That's it — on purpose. New features get added when users ask for them
 ## Install
 
 Not released yet. When v0.1.0 ships, installers for **Windows** and **macOS**
-will be on the [Releases page](https://github.com/YOUR_GITHUB_USERNAME/glossa/releases).
+will be on the [Releases page](https://github.com/Shreya20002/glossa/releases).
 
 > **Heads-up:** early releases are not code-signed, so Windows and macOS will
 > show a warning the first time you open Glossa. Instructions for getting past
@@ -65,7 +65,7 @@ Glossa v1 is deliberately small. Ideas that are **not in v1 (yet)**:
 - More settings (pace targets, monologue length)
 
 Want one of these, or something else? Upvote an existing
-[feature request](https://github.com/YOUR_GITHUB_USERNAME/glossa/issues?q=is%3Aissue+label%3Aenhancement)
+[feature request](https://github.com/Shreya20002/glossa/issues?q=is%3Aissue+label%3Aenhancement)
 or open a new one. The most-requested ideas get built next.
 
 ## Contributing
