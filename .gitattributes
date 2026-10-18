@@ -1,0 +1,16 @@
+# .gitattributes — tells git how to treat files.
+#
+# Windows uses CRLF line endings; macOS and Linux use LF. If every contributor
+# commits their own style, every diff turns into noise. This line makes git
+# store text files with LF in the repository, and check them out with LF on
+# every computer.
+* text=auto eol=lf
+
+# Binary files: never touch their bytes.
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.ico  binary
+*.icns binary
+*.wav  binary
+*.onnx binary

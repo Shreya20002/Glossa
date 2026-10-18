@@ -1,0 +1,59 @@
+# Issue form for feature ideas. It asks for the PROBLEM first, because the
+# best features come from understanding real needs, not from the first
+# solution someone imagines.
+
+name: Feature request
+description: Suggest an idea that would make Glossa more useful.
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Glossa v1 is deliberately small, and new features are chosen by what users ask for.
+        **Search first** — if your idea already exists, add a 👍 reaction to it instead of
+        opening a duplicate. Reactions are how we decide what to build next.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the situation and what's hard about it today.
+      placeholder: "When I'm in a sales demo, I lose track of which topics I've covered..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like Glossa to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've tried or considered
+
+  - type: dropdown
+    id: who
+    attributes:
+      label: Who would this help most?
+      multiple: true
+      options:
+        - Job seekers / interviews
+        - Students / presentations
+        - Managers / meetings
+        - Sales / customer calls
+        - Non-native speakers
+        - Everyone
+        - Other
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing feature requests.
+          required: true
+        - label: This idea works offline and doesn't need to send my data anywhere.
+          required: false

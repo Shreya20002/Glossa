@@ -1,0 +1,10 @@
+# CODEOWNERS — who must review changes to which files.
+# When a pull request touches a matching path, GitHub automatically requests a
+# review from the listed owners. Combined with branch protection ("require
+# review from Code Owners"), nothing reaches `main` without their approval.
+#
+# Format: <path pattern>  <@github-username or @org/team>
+# The LAST matching line wins.
+
+# Everything: the maintainer.
+*  @YOUR_GITHUB_USERNAME

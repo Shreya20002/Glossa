@@ -1,0 +1,103 @@
+# An "issue form": GitHub turns this file into a web form with labelled fields
+# when someone clicks "New issue → Bug report". Structured answers make bugs
+# much faster to reproduce than a free-text box.
+# Docs: https://docs.github.com/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms
+
+name: Bug report
+description: Something in Glossa doesn't work as expected.
+# Labels applied automatically to every new bug. `needs-triage` means
+# "a maintainer hasn't looked at this yet".
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please check the
+        [existing issues](https://github.com/YOUR_GITHUB_USERNAME/glossa/issues) first —
+        someone may have reported it already.
+
+        **Security problem?** Don't file it here — see
+        [SECURITY.md](https://github.com/YOUR_GITHUB_USERNAME/glossa/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem. Screenshots of the overlay or report card help a lot.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start a session
+        2. Speak for about 2 minutes
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Glossa version
+      description: Shown in the app's About section, or the installer file name.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Linux (development build)
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: "e.g. Windows 11 24H2, macOS 15.3"
+
+  - type: dropdown
+    id: audio-setup
+    attributes:
+      label: Audio setup
+      description: Accuracy depends a lot on how sound reaches the microphone.
+      options:
+        - Headphones / earbuds with built-in mic
+        - Headphones + separate microphone
+        - Laptop speakers + built-in mic
+        - External speakers + microphone
+        - Other (please describe above)
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error messages
+      description: Paste any error text. This box is formatted as code automatically.
+      render: text
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this hasn't been reported.
+          required: true
+        - label: I did not attach audio recordings or private information.
+          required: true

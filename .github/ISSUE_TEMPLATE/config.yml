@@ -1,0 +1,14 @@
+# Controls the "New issue" chooser page.
+
+# false = people must pick a template; no blank, unstructured issues.
+blank_issues_enabled: false
+
+# Extra links shown on the chooser, so questions and security reports go to
+# the right place instead of becoming issues.
+contact_links:
+  - name: Ask a question or share an idea
+    url: https://github.com/YOUR_GITHUB_USERNAME/glossa/discussions
+    about: Questions, help with setup, and open-ended ideas go to Discussions.
+  - name: Report a security vulnerability
+    url: https://github.com/YOUR_GITHUB_USERNAME/glossa/security/advisories/new
+    about: Please report security issues privately, not as public issues.
