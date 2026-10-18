@@ -45,7 +45,7 @@ Then you open a **pull request** on GitHub from that branch into `main`.
 
 ## Pull requests — yes, even for the maintainer
 
-As maintainer you *could* push straight to `main`. Don't. Open a PR for your own
+As maintainer you _could_ push straight to `main`. Don't. Open a PR for your own
 changes too, because:
 
 1. **CI runs on the PR** and catches mistakes before they hit `main`.
@@ -67,11 +67,11 @@ chapter 04 explains it.
 
 GitHub offers three ways to merge a PR:
 
-| Method | Result on `main` |
-| --- | --- |
-| Merge commit | All the PR's commits + an extra "Merge pull request #12" commit |
-| Rebase | All the PR's commits, replayed one by one |
-| **Squash** ✅ | **One** commit, titled with the PR title |
+| Method        | Result on `main`                                                |
+| ------------- | --------------------------------------------------------------- |
+| Merge commit  | All the PR's commits + an extra "Merge pull request #12" commit |
+| Rebase        | All the PR's commits, replayed one by one                       |
+| **Squash** ✅ | **One** commit, titled with the PR title                        |
 
 Contributors' branches often contain commits like "wip", "fix typo", "oops".
 Squashing turns the whole PR into one tidy commit, so `main` reads like a
@@ -141,11 +141,11 @@ After the first commit exists locally:
 
 ## Commands you'll use weekly
 
-| Command | Meaning |
-| --- | --- |
-| `git status` | What's changed? What branch am I on? |
-| `git diff` | Show exact line changes not yet staged. |
-| `git log --oneline -10` | Last 10 commits, one line each. |
-| `git switch <branch>` | Move to another branch. |
-| `git pull` | Download and apply new commits from GitHub. |
+| Command                                                       | Meaning                                              |
+| ------------------------------------------------------------- | ---------------------------------------------------- |
+| `git status`                                                  | What's changed? What branch am I on?                 |
+| `git diff`                                                    | Show exact line changes not yet staged.              |
+| `git log --oneline -10`                                       | Last 10 commits, one line each.                      |
+| `git switch <branch>`                                         | Move to another branch.                              |
+| `git pull`                                                    | Download and apply new commits from GitHub.          |
 | `git fetch origin pull/23/head:pr-23` then `git switch pr-23` | Check out a contributor's PR #23 locally to test it. |

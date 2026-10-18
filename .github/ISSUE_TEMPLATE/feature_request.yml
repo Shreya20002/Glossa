@@ -4,7 +4,7 @@
 
 name: Feature request
 description: Suggest an idea that would make Glossa more useful.
-labels: ["enhancement", "needs-triage"]
+labels: ['enhancement', 'needs-triage']
 body:
   - type: markdown
     attributes:

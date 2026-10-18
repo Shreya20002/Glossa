@@ -14,16 +14,16 @@ this, under these conditions." That's what the `LICENSE` file does.
 
 Licenses fall into two families:
 
-| Family | Examples | The deal |
-| --- | --- | --- |
+| Family         | Examples                 | The deal                                                                                                 |
+| -------------- | ------------------------ | -------------------------------------------------------------------------------------------------------- |
 | **Permissive** | MIT, **Apache-2.0**, BSD | Do almost anything, including closed-source commercial use. Just keep the copyright and license notices. |
-| **Copyleft** | GPL, AGPL | If you distribute a modified version, you must publish your changes under the same license. |
+| **Copyleft**   | GPL, AGPL                | If you distribute a modified version, you must publish your changes under the same license.              |
 
 You picked **Apache-2.0**. It's permissive like MIT, plus two extras:
 
 1. **Patent grant.** Everyone who contributes code also gives users permission
-   to use any of *their* patents that the code covers. If someone sues claiming
-   Glossa infringes a patent, the patent rights the license gave *them* end
+   to use any of _their_ patents that the code covers. If someone sues claiming
+   Glossa infringes a patent, the patent rights the license gave _them_ end
    automatically. This protects you and your users.
 2. **Contribution terms are built in** (section 5). Anything someone submits
    to the project is automatically under Apache-2.0 too, unless they say
@@ -41,7 +41,7 @@ You picked **Apache-2.0**. It's permissive like MIT, plus two extras:
 
 ### "The Glossa Authors"
 
-The copyright line says *The Glossa Authors* instead of a single name. This is
+The copyright line says _The Glossa Authors_ instead of a single name. This is
 common practice (Go and Chromium do it): every contributor keeps the copyright
 on their own contribution, and git history records who wrote what. It also keeps
 your personal details out of every file.
@@ -65,24 +65,24 @@ in `SECURITY.md`) protects you from burnout.
 ## The community files, and why each one exists
 
 GitHub shows a **Community Standards** checklist for every repo
-(*Insights → Community Standards*). Glossa has all of these:
+(_Insights → Community Standards_). Glossa has all of these:
 
-| File | Its job |
-| --- | --- |
-| `README.md` | The front door. What Glossa is, why it's different, how to get it. Most visitors read only this. |
-| `LICENSE` | The legal permission to use the code. |
-| `CONTRIBUTING.md` | How to set up, make a change, and submit it. It turns "I'd like to help" into an actual PR. |
+| File                 | Its job                                                                                             |
+| -------------------- | --------------------------------------------------------------------------------------------------- |
+| `README.md`          | The front door. What Glossa is, why it's different, how to get it. Most visitors read only this.    |
+| `LICENSE`            | The legal permission to use the code.                                                               |
+| `CONTRIBUTING.md`    | How to set up, make a change, and submit it. It turns "I'd like to help" into an actual PR.         |
 | `CODE_OF_CONDUCT.md` | Behaviour rules, and how violations are handled. It signals the project is a safe place to show up. |
-| `SECURITY.md` | How to report vulnerabilities privately, so attackers don't learn about them first. |
-| Issue templates | Structured forms, so bug reports include OS, version, and steps to reproduce. |
-| PR template | A checklist that reminds contributors to test and explain their change. |
+| `SECURITY.md`        | How to report vulnerabilities privately, so attackers don't learn about them first.                 |
+| Issue templates      | Structured forms, so bug reports include OS, version, and steps to reproduce.                       |
+| PR template          | A checklist that reminds contributors to test and explain their change.                             |
 
 And two newer files that GitHub doesn't check for yet:
 
-| File | Its job |
-| --- | --- |
+| File        | Its job                                                                                                                                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `AGENTS.md` | Instructions for **AI coding agents**. Many contributors now use AI tools. This open standard tells those tools the project's commands, layout and rules ("never add network calls"), so their output fits the project. |
-| `CLAUDE.md` | Claude Code reads `CLAUDE.md`, not `AGENTS.md`. Ours contains one line — `@AGENTS.md` — which imports `AGENTS.md`, so there's a single source of truth. |
+| `CLAUDE.md` | Claude Code reads `CLAUDE.md`, not `AGENTS.md`. Ours contains one line — `@AGENTS.md` — which imports `AGENTS.md`, so there's a single source of truth.                                                                 |
 
 ## Saying no
 

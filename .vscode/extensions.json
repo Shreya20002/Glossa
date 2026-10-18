@@ -1,0 +1,9 @@
+{
+  // VS Code suggests installing these when someone opens the project.
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig",
+    "vitest.explorer"
+  ]
+}

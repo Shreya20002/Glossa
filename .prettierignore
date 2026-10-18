@@ -1,0 +1,13 @@
+# Generated or downloaded
+out/
+dist/
+release/
+coverage/
+models/
+pnpm-lock.yaml
+
+# Copied verbatim from upstream; must not be reformatted
+CODE_OF_CONDUCT.md
+
+# Written by release-please
+CHANGELOG.md

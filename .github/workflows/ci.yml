@@ -1,0 +1,97 @@
+# CI = "continuous integration": GitHub runs these checks on its own computers
+# ("runners") for every pull request and every push to main. A red ❌ on a PR
+# means something here failed; click "Details" to see which step and why.
+# Line-by-line walkthrough: docs/maintainer-guide/04-ci-explained.md
+
+# The name shown in the Actions tab.
+name: CI
+
+# WHEN this workflow runs.
+on:
+  pull_request: # every PR, including PRs from forks
+  push:
+    branches: [main] # every change that lands on main
+  workflow_dispatch: # a "Run workflow" button in the Actions tab, for manual runs
+
+# The GITHUB_TOKEN that jobs receive can only READ the repository. CI never
+# needs to write anything, so a compromised step can't do damage.
+permissions:
+  contents: read
+
+# If you push again to the same PR while CI is still running, cancel the old
+# run: only the newest commit matters. Runs on main are never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Job 1: fast checks on Linux (the cheapest, quickest runner).
+  checks:
+    name: Checks (format, lint, types, tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Download the repository's code onto the runner.
+      - uses: actions/checkout@v7
+        with:
+          # Don't leave a GitHub token in .git/config for later steps to find.
+          persist-credentials: false
+
+      # Install pnpm. With no version given, it uses "packageManager" from
+      # package.json, so CI always matches what developers use.
+      # Third-party action: pinned to an exact commit (see 04-ci-explained.md).
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      # Install Node.js (version from .nvmrc) and cache pnpm's download store
+      # between runs, so installs are faster.
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # Install exactly what pnpm-lock.yaml says. If package.json and the
+      # lockfile disagree, fail instead of silently changing versions.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check formatting (Prettier)
+        run: pnpm format:check
+
+      - name: Lint (ESLint)
+        run: pnpm lint
+
+      - name: Type-check (TypeScript)
+        run: pnpm typecheck
+
+      - name: Unit tests (Vitest)
+        run: pnpm test
+
+  # Job 2: build the real app on both platforms Glossa supports. This catches
+  # problems the checks can't, like a broken build config or an OS-specific
+  # path bug. It runs at the same time as "checks" to save waiting time.
+  build:
+    name: Build (${{ matrix.os }})
+    # A "matrix" runs this same job once per entry, in parallel.
+    strategy:
+      # Let both platforms finish even if one fails, so you see every failure at once.
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Compile and package an unpacked app folder (no installer, no signing).
+      - name: Build unpacked app
+        run: pnpm build:unpack
+        env:
+          # No signing certificates in CI yet, so don't go looking for any.
+          CSC_IDENTITY_AUTO_DISCOVERY: false

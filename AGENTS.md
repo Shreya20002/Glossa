@@ -16,15 +16,16 @@ exist yet; don't create them unless your task needs them.
 
 ## Commands
 
-| Command | Use |
-| --- | --- |
-| `pnpm install` | Install dependencies. Never use npm or yarn. |
-| `pnpm fetch-models` | Download speech models into `models/` (gitignored). |
-| `pnpm dev` | Run the app with live reload. |
-| `pnpm check` | Format check + lint + typecheck + unit tests. **Must pass before you finish.** |
-| `pnpm format` | Auto-fix formatting. |
-| `pnpm test` | Unit tests (Vitest). |
-| `pnpm test:e2e` | End-to-end tests (Playwright driving Electron with a fake mic). |
+| Command             | Use                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| `pnpm install`      | Install dependencies. Never use npm or yarn.                                         |
+| `pnpm fetch-models` | Download speech models into `models/` (gitignored). _Not available yet._             |
+| `pnpm dev`          | Run the app with live reload.                                                        |
+| `pnpm check`        | Format check + lint + typecheck + unit tests. **Must pass before you finish.**       |
+| `pnpm format`       | Auto-fix formatting.                                                                 |
+| `pnpm test`         | Unit tests (Vitest).                                                                 |
+| `pnpm test:e2e`     | End-to-end tests (Playwright driving Electron with a fake mic). _Not available yet._ |
+| `pnpm build:unpack` | Build a runnable, unpacked app into `release/` (what CI's build job runs).           |
 
 ## Layout
 
@@ -59,7 +60,12 @@ main process → overlay/app windows over IPC.
 5. **Prebuilt dependencies only.** Nothing that needs a C++/Rust/Python
    toolchain at install time. Justify any new dependency in the PR description.
 6. **Keep Electron locked down.** `contextIsolation: true`, `sandbox: true`,
-   `nodeIntegration: false`, strict CSP. Never weaken these.
+   `nodeIntegration: false`, strict CSP, the network block and permission
+   handlers in `src/main/security.ts`. Never weaken these.
+
+ESLint enforces rules 1 and 3 (`eslint.config.mjs`). A lint error that cites
+AGENTS.md means the code breaks a golden rule: change the code, not the lint
+config.
 
 ## Code conventions
 

@@ -1,0 +1,37 @@
+# Checks that every pull request title follows Conventional Commits, e.g.
+#   feat: add filler-word counter
+#   fix(overlay): keep it on top of fullscreen apps
+# Why: PRs are squash-merged, so the title becomes the commit message on main,
+# and the release tooling reads those messages to pick the next version number
+# and write the changelog.
+
+name: PR title
+
+on:
+  pull_request:
+    # "edited" re-runs the check when someone fixes the title.
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  conventional-title:
+    name: Conventional Commit title
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check PR title
+        # SECURITY: the title is text anyone can type. Pass it in through an
+        # environment variable, never by pasting ${{ ... }} straight into the
+        # script below, or a title like `"; rm -rf / #` could run as a command.
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|docs|test|refactor|perf|build|ci|chore|revert|style)(\([a-z0-9._/-]+\))?!?: [^ ].*$'
+          if [[ "$TITLE" =~ $pattern ]]; then
+            echo "✅ Title follows Conventional Commits: $TITLE"
+          else
+            echo "::error title=PR title::\"$TITLE\" doesn't follow Conventional Commits. Use 'type: description', e.g. 'feat: add pace meter' or 'fix: overlay flicker'. Allowed types: feat, fix, docs, test, refactor, perf, build, ci, chore, revert, style."
+            exit 1
+          fi

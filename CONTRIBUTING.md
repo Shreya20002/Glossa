@@ -7,14 +7,15 @@ This guide explains how to get set up and how changes get from your computer
 into Glossa. If anything here is confusing, that's a bug in this guide — please
 open an issue or ask in [Discussions](https://github.com/YOUR_GITHUB_USERNAME/glossa/discussions).
 
-> **Project status:** pre-release. The app is being built step by step, so some
-> commands below will only work once the app scaffold has landed.
+> **Project status:** pre-release. The app is being built step by step.
+> `pnpm fetch-models` and `pnpm test:e2e` arrive with the microphone features;
+> every other command below works today.
 
 ## Ways to contribute
 
-- **Report a bug** — use the *Bug report* issue template.
-- **Suggest a feature** — use the *Feature request* template. Tell us the
-  *problem* you have, not just the solution you imagine.
+- **Report a bug** — use the _Bug report_ issue template.
+- **Suggest a feature** — use the _Feature request_ template. Tell us the
+  _problem_ you have, not just the solution you imagine.
 - **Improve filler detection** — filler words differ by language, region, and
   habit. Suggestions (with examples) are very welcome.
 - **Record test clips** — short, consented recordings help us measure accuracy
@@ -38,11 +39,11 @@ open an issue or ask in [Discussions](https://github.com/YOUR_GITHUB_USERNAME/gl
 
 You need:
 
-| Tool | Version | How to get it |
-| --- | --- | --- |
-| Git | any recent | <https://git-scm.com> |
-| Node.js | 22 (see `.nvmrc`) | <https://nodejs.org> or a version manager like `nvm` / `fnm` |
-| pnpm | 10 | `corepack enable` (bundled with Node 22) or `npm install -g pnpm@10` |
+| Tool    | Version           | How to get it                                                                                                      |
+| ------- | ----------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Git     | any recent        | <https://git-scm.com>                                                                                              |
+| Node.js | 22 (see `.nvmrc`) | <https://nodejs.org> or a version manager like `nvm` / `fnm`                                                       |
+| pnpm    | 10                | `npm install -g pnpm@10`. Any 10.x works: pnpm then switches itself to the exact version pinned in `package.json`. |
 
 Glossa uses only prebuilt packages, so you do **not** need a C++ compiler,
 Python, CMake, or Rust. Windows and macOS are both first-class; Linux works for
@@ -65,14 +66,14 @@ pnpm dev
 
 ### Everyday commands
 
-| Command | What it does |
-| --- | --- |
-| `pnpm dev` | Run the app with live reload. |
-| `pnpm check` | **Run before every PR.** Formatting, lint, type-check and unit tests — the same checks CI runs. |
-| `pnpm format` | Auto-fix formatting. |
-| `pnpm test` | Unit tests only (fast). |
-| `pnpm test:e2e` | End-to-end tests: launches the real app with a fake microphone. |
-| `pnpm build:unpack` | Build a runnable app folder without making an installer. |
+| Command             | What it does                                                                                    |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm dev`          | Run the app with live reload.                                                                   |
+| `pnpm check`        | **Run before every PR.** Formatting, lint, type-check and unit tests — the same checks CI runs. |
+| `pnpm format`       | Auto-fix formatting.                                                                            |
+| `pnpm test`         | Unit tests only (fast).                                                                         |
+| `pnpm test:e2e`     | End-to-end tests: launches the real app with a fake microphone.                                 |
+| `pnpm build:unpack` | Build a runnable app folder without making an installer.                                        |
 
 ## Making a change
 
@@ -84,7 +85,7 @@ pnpm dev
 4. **Run `pnpm check`** and make sure it passes.
 5. **Commit** using [Conventional Commits](#commit-messages).
 6. **Push** to your fork and **open a pull request** against `main`. Fill in the
-   template — especially *how you tested it*.
+   template — especially _how you tested it_.
 7. **Review:** a maintainer will review, may ask for changes, and then
    **squash-merges** your PR. Your PR title becomes the commit message on `main`.
 
@@ -95,16 +96,16 @@ is `type: short description` in the present tense. **Your PR title must follow
 it** — a CI check verifies this, and the release tooling uses it to decide the
 next version number and write the changelog.
 
-| Type | Use it for | Effect on version |
-| --- | --- | --- |
-| `feat:` | A new user-facing feature | minor (0.**1**.0 → 0.**2**.0) |
-| `fix:` | A bug fix | patch (0.1.**0** → 0.1.**1**) |
-| `docs:` | Documentation only | none |
-| `test:` | Adding or fixing tests | none |
-| `refactor:` | Code change that doesn't change behaviour | none |
-| `perf:` | Performance improvement | patch |
-| `build:` / `ci:` | Build system or CI changes | none |
-| `chore:` | Maintenance (deps, tooling) | none |
+| Type             | Use it for                                | Effect on version             |
+| ---------------- | ----------------------------------------- | ----------------------------- |
+| `feat:`          | A new user-facing feature                 | minor (0.**1**.0 → 0.**2**.0) |
+| `fix:`           | A bug fix                                 | patch (0.1.**0** → 0.1.**1**) |
+| `docs:`          | Documentation only                        | none                          |
+| `test:`          | Adding or fixing tests                    | none                          |
+| `refactor:`      | Code change that doesn't change behaviour | none                          |
+| `perf:`          | Performance improvement                   | patch                         |
+| `build:` / `ci:` | Build system or CI changes                | none                          |
+| `chore:`         | Maintenance (deps, tooling)               | none                          |
 
 Examples: `feat: count "you know" as a filler`, `fix: overlay hidden behind
 fullscreen apps`, `docs: explain mic permission on macOS`.

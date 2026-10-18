@@ -7,6 +7,7 @@ sales calls, classes, or practice runs — and tells you, live, how you're doing
 It listens only to your microphone, runs entirely on your computer, and never
 sends anything anywhere.
 
+[![CI](https://github.com/YOUR_GITHUB_USERNAME/glossa/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME/glossa/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 > 🚧 **Status: pre-release.** Glossa is being built in the open. There is no
@@ -18,13 +19,13 @@ sends anything anywhere.
 
 Glossa v1 does five things, and does them well:
 
-| Feature | What you see |
-| --- | --- |
-| 🎙️ **Talk-time meter** | How much of the session you've spent speaking, plus a "speaking now" dot. |
-| ⏱️ **Pace** | Your words per minute, with a gentle hint when you're rushing or dragging. |
-| 🔁 **Filler-word counter** | "um", "uh", "you know", "basically"… counted live, with your top offenders. |
-| 🗣️ **Monologue alert** | A soft pulse when you've been talking for over a minute without a break. |
-| 📋 **Post-call report card** | A summary of the session compared with last time — e.g. *Filler words: 32 → 9*. Copy it as an image and share your progress. |
+| Feature                      | What you see                                                                                                                 |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 🎙️ **Talk-time meter**       | How much of the session you've spent speaking, plus a "speaking now" dot.                                                    |
+| ⏱️ **Pace**                  | Your words per minute, with a gentle hint when you're rushing or dragging.                                                   |
+| 🔁 **Filler-word counter**   | "um", "uh", "you know", "basically"… counted live, with your top offenders.                                                  |
+| 🗣️ **Monologue alert**       | A soft pulse when you've been talking for over a minute without a break.                                                     |
+| 📋 **Post-call report card** | A summary of the session compared with last time — e.g. _Filler words: 32 → 9_. Copy it as an image and share your progress. |
 
 That's it — on purpose. New features get added when users ask for them
 (see [Roadmap](#roadmap)).
@@ -50,7 +51,7 @@ will be on the [Releases page](https://github.com/YOUR_GITHUB_USERNAME/glossa/re
 > show a warning the first time you open Glossa. Instructions for getting past
 > it safely will be included with the release.
 
-**Tip:** use headphones. Glossa measures *your* voice from your microphone; if
+**Tip:** use headphones. Glossa measures _your_ voice from your microphone; if
 the other people on your call come out of your speakers, the mic hears them too.
 
 ## Roadmap
@@ -80,4 +81,4 @@ Found a security problem? Please report it privately — see [SECURITY.md](SECUR
 
 Glossa is licensed under the [Apache License 2.0](LICENSE).
 
-*The name: γλῶσσα (glôssa) is Ancient Greek for "tongue" and "language".*
+_The name: γλῶσσα (glôssa) is Ancient Greek for "tongue" and "language"._

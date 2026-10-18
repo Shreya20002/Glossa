@@ -1,0 +1,51 @@
+# Dependabot opens pull requests to keep dependencies up to date. CI runs on
+# each one, so you merge it if it's green, and investigate (or close) if not.
+# Docs: https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+
+version: 2
+updates:
+  # npm packages from package.json (Dependabot understands pnpm's lockfile).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Wait 7 days after a new version is published before proposing it.
+    # Malicious package versions are usually caught and removed within days,
+    # so this avoids being one of the first to install them. (Security fixes
+    # for known vulnerabilities are not delayed.)
+    cooldown:
+      default-days: 7
+    # Bundle all minor/patch bumps into ONE weekly PR instead of a dozen.
+    # Major versions (which can break things) still get their own PRs.
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    # Gives PR titles like "chore(deps): bump vite", which pass the PR-title check.
+    commit-message:
+      prefix: chore
+      include: scope
+    open-pull-requests-limit: 5
+    ignore:
+      # typescript-eslint doesn't support TypeScript 7 yet. Remove this when it does.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      # @types/node should match the Node.js version inside Electron (24),
+      # not the newest Node.js.
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
+
+  # The actions used in .github/workflows/*.yml.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci
+      include: scope

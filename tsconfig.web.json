@@ -1,0 +1,13 @@
+{
+  // Code that runs in a window (the "renderer"): browser APIs and React, but
+  // no Node.js. The renderer reaches Electron only through window.glossa,
+  // which the preload script exposes.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": [],
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.web.tsbuildinfo"
+  },
+  "include": ["src/renderer/**/*", "src/shared/**/*", "src/core/**/*"]
+}

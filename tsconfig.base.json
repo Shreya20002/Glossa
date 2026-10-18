@@ -1,0 +1,25 @@
+{
+  // Settings shared by tsconfig.node.json and tsconfig.web.json.
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    // Vite/electron-vite bundle our code, so let TypeScript resolve imports the
+    // way bundlers do.
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+
+    // Strictness: catch mistakes at compile time instead of at runtime.
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    // Needed so the root tsconfig.json can reference these projects.
+    "composite": true
+  }
+}

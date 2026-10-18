@@ -1,0 +1,38 @@
+# electron-builder turns the compiled app (out/) into something people can
+# install: an .exe installer on Windows, a .dmg on macOS.
+# `pnpm build:unpack` uses this file to build an unpacked app folder (no
+# installer), which is quicker and is what CI uses to prove the app builds.
+# Docs: https://www.electron.build/configuration
+
+# A permanent, unique ID for the app. Windows and macOS use it to recognise
+# Glossa across updates, so it must never change after the first release.
+appId: io.github.YOUR_GITHUB_USERNAME.glossa
+productName: Glossa
+copyright: Copyright © 2026 The Glossa Authors
+
+directories:
+  output: release/${version}
+
+# Only the compiled output goes into the app; source code and tests stay out.
+files:
+  - out/**
+
+# Pack app files into a single archive (app.asar). Faster startup and tidier.
+asar: true
+
+# Glossa uses only prebuilt native packages, so never try to compile anything.
+npmRebuild: false
+
+win:
+  target: nsis
+nsis:
+  artifactName: ${productName}-${version}-setup.${ext}
+
+mac:
+  target: dmg
+  category: public.app-category.productivity
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+
+# Publishing to GitHub Releases is configured in the release workflow (Step 7).
+publish: null
