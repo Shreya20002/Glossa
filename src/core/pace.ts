@@ -30,14 +30,15 @@ export const FAST_ABOVE_WPM = 170
 
 export type PaceBand = 'slow' | 'good' | 'fast'
 
+/** How long the chunks lasted in total: the time spent saying their words. */
+export function speechSpanMs(chunks: readonly TranscribedChunk[]): number {
+  return chunks.reduce((total, chunk) => total + Math.max(0, chunk.endMs - chunk.startMs), 0)
+}
+
 function wordsPerMinute(chunks: readonly TranscribedChunk[]): number | null {
-  let words = 0
-  let spanMs = 0
-  for (const chunk of chunks) {
-    words += chunk.words
-    spanMs += Math.max(0, chunk.endMs - chunk.startMs)
-  }
+  const spanMs = speechSpanMs(chunks)
   if (spanMs < MIN_PACE_SAMPLE_MS) return null
+  const words = chunks.reduce((total, chunk) => total + chunk.words, 0)
   return Math.round(words / (spanMs / 60_000))
 }
 

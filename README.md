@@ -27,6 +27,10 @@ Glossa v1 does five things, and does them well:
 | 🗣️ **Monologue alert**       | A soft pulse when you've been talking for over a minute without a break.                                                     |
 | 📋 **Post-call report card** | A summary of the session compared with last time — e.g. _Filler words: 32 → 9_. Copy it as an image and share your progress. |
 
+**How accurate is it?** On recordings of real meetings, Glossa catches
+**99% of ums and uhs** (96% of what it reports is right). The benchmark is open:
+see [eval/README.md](eval/README.md) and run it yourself with `pnpm eval`.
+
 That's it — on purpose. New features get added when users ask for them
 (see [Roadmap](#roadmap)).
 

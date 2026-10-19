@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { fillerLabel } from '../../core/fillers'
 import { formatDuration, formatPercent } from '../../core/format'
 import type { PaceBand } from '../../core/pace'
 import type { LiveMetrics } from '../../core/session'
@@ -7,6 +8,13 @@ const PACE_HINT: Record<PaceBand, string> = {
   slow: 'A little slow',
   good: 'Good pace',
   fast: 'A little fast: slow down',
+}
+
+/** Hover text listing the most frequent fillers, e.g. "um ×3, like ×1". */
+function fillersHint(metrics: LiveMetrics | null): string {
+  const top = metrics?.fillers.top ?? []
+  if (top.length === 0) return 'No filler words yet'
+  return top.map(({ filler, count }) => `${fillerLabel(filler)} ×${count}`).join(', ')
 }
 
 /** The floating pill shown during a session. Drag it anywhere; ■ ends the session. */
@@ -42,6 +50,12 @@ export function Overlay() {
           {metrics?.wordsPerMinute ?? '—'}
         </span>
         <span className="label">wpm</span>
+      </div>
+      <div className="stat" title={fillersHint(metrics)}>
+        <span className="value" data-testid="fillers">
+          {metrics?.fillers.total ?? 0}
+        </span>
+        <span className="label">{metrics?.fillers.total === 1 ? 'filler' : 'fillers'}</span>
       </div>
       <div className="stat">
         <span className="value" data-testid="elapsed">

@@ -11,27 +11,25 @@ import {
 import type { SessionState } from '../core/session'
 import type { SpeechChunk } from '../core/speechChunks'
 import { MAX_CHUNK_MS } from '../core/speechChunks'
-import { countWords } from '../core/words'
+import { analyzeTranscript } from '../core/transcript'
 import type { EngineEvent, EngineRequest } from '../shared/engine'
 import { ModelFile } from '../shared/models'
 import { AudioHistory } from './audioHistory'
 import { FrameBuffer } from './frameBuffer'
 import { SileroVad, VAD_FRAME_SAMPLES, VAD_SAMPLE_RATE_HZ } from './sileroVad'
-import { SpeechRecognizer } from './speechRecognizer'
+import { FILLER_PROMPT, SpeechRecognizer } from './speechRecognizer'
+import { transcriptionRange } from './transcription'
 
 // Entry point of the engine: a hidden background process (started by
 // src/main/engine.ts) that turns raw microphone audio into live metrics.
 // It never writes to disk, and keeps audio only briefly in memory: the last
 // few seconds, so a finished phrase can be transcribed. Transcripts are
-// reduced to word counts straight away.
+// reduced to word and filler counts straight away.
 
 const FRAME_DURATION_MS = (VAD_FRAME_SAMPLES / VAD_SAMPLE_RATE_HZ) * 1000
 
 /** How often (in audio time) fresh numbers are sent to the overlay: 4 times a second. */
 const METRICS_INTERVAL_MS = 250
-
-/** Extra audio around each chunk, so Whisper hears the first and last word whole. */
-const TRANSCRIBE_PADDING_MS = 200
 
 /** Audio kept in memory: enough for the longest chunk plus padding. */
 const HISTORY_MS = MAX_CHUNK_MS + 5_000
@@ -60,7 +58,9 @@ function sendMetrics(): void {
 
 async function startSession(modelsDir: string): Promise<void> {
   vad ??= await SileroVad.load(join(modelsDir, ModelFile.voiceActivity))
-  recognizer ??= await SpeechRecognizer.load(modelsDir, ModelFile.speechRecognition)
+  recognizer ??= await SpeechRecognizer.load(modelsDir, ModelFile.speechRecognition, {
+    prompt: FILLER_PROMPT,
+  })
   vad.reset()
   frames.reset()
   history.reset()
@@ -72,17 +72,16 @@ async function startSession(modelsDir: string): Promise<void> {
 
 /** Cuts the chunk's audio out of the history now, and transcribes it when the recognizer is free. */
 function transcribeLater(chunk: SpeechChunk): void {
-  const audio = history.slice(
-    chunk.startMs - TRANSCRIBE_PADDING_MS,
-    chunk.endMs + TRANSCRIBE_PADDING_MS,
-  )
+  const { fromMs, toMs } = transcriptionRange(chunk)
+  const audio = history.slice(fromMs, toMs)
   const forSession = sessionNumber
   transcriptions = transcriptions.then(async () => {
     if (!recognizer) return
     try {
-      const words = countWords(await recognizer.transcribe(audio))
+      // Reduce the text to counts at once: the transcript itself is never kept.
+      const counts = analyzeTranscript(await recognizer.transcribe(audio))
       if (session && forSession === sessionNumber) {
-        session = applyTranscription(session, chunk, words)
+        session = applyTranscription(session, chunk, counts)
         sendMetrics()
       }
     } catch (error) {

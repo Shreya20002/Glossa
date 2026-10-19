@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { fillerLabel } from '../../core/fillers'
+import type { FillerSummary } from '../../core/fillers'
 import { formatDuration, formatPercent } from '../../core/format'
 import type { PaceBand } from '../../core/pace'
 import type { LiveMetrics } from '../../core/session'
@@ -10,7 +12,7 @@ import { loadMicrophoneChoice, saveMicrophoneChoice, useMicrophones } from './us
 const FEATURES = [
   { name: 'Talk time', detail: 'How much of the session you spend speaking' },
   { name: 'Pace', detail: 'Words per minute, with a nudge when you rush' },
-  { name: 'Filler words', detail: '"um", "uh", "you know"… counted live', soon: true },
+  { name: 'Filler words', detail: '"um", "uh", "you know"… counted live' },
   { name: 'Monologue alert', detail: 'A soft pulse after a minute without a pause', soon: true },
   { name: 'Report card', detail: 'Your progress since last time', soon: true },
 ] as const
@@ -20,6 +22,20 @@ const PACE_LABEL: Record<PaceBand | 'none', string> = {
   slow: 'wpm · slow',
   good: 'wpm · good',
   fast: 'wpm · fast',
+}
+
+/** "fillers", or "fillers · um ×3" once there's a most frequent one. */
+function fillersLabel(fillers: FillerSummary | null): string {
+  const top = fillers?.top[0]
+  return top ? `fillers · ${fillerLabel(top.filler)} ×${top.count}` : 'fillers'
+}
+
+/** "7 filler words (2.1 per minute): um ×4, like ×2, you know ×1." */
+function describeFillers(fillers: FillerSummary): string {
+  if (fillers.total === 0) return 'No filler words.'
+  const rate = fillers.perMinute === null ? '' : ` (${fillers.perMinute} per minute)`
+  const top = fillers.top.map(({ filler, count }) => `${fillerLabel(filler)} ×${count}`)
+  return `${fillers.total} filler ${fillers.total === 1 ? 'word' : 'words'}${rate}: ${top.join(', ')}.`
 }
 
 type Phase = 'idle' | 'starting' | 'live' | 'stopping'
@@ -119,6 +135,10 @@ export function App() {
               <span className="live-label">{PACE_LABEL[metrics?.pace ?? 'none']}</span>
             </div>
             <div>
+              <span className="live-value">{metrics?.fillers.total ?? 0}</span>
+              <span className="live-label">{fillersLabel(metrics?.fillers ?? null)}</span>
+            </div>
+            <div>
               <span className="live-value">{formatDuration(metrics?.elapsedMs ?? 0)}</span>
               <span className="live-label">elapsed</span>
             </div>
@@ -190,7 +210,7 @@ export function App() {
             {formatPercent(lastSession.summary.talkRatio)} of the time)
             {lastSession.summary.wordsPerMinute !== null &&
               ` at ${lastSession.summary.wordsPerMinute} words per minute`}
-            .
+            . {describeFillers(lastSession.summary.fillers)}
           </p>
         )}
         {!error && phase === 'idle' && lastSession && !lastSession.ok && (

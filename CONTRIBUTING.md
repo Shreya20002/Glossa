@@ -17,9 +17,12 @@ open an issue or ask in [Discussions](https://github.com/Shreya20002/glossa/disc
 - **Suggest a feature** — use the _Feature request_ template. Tell us the
   _problem_ you have, not just the solution you imagine.
 - **Improve filler detection** — filler words differ by language, region, and
-  habit. Suggestions (with examples) are very welcome.
-- **Record test clips** — short, consented recordings help us measure accuracy
-  (details will live in `eval/`).
+  habit. Suggestions (with examples) are very welcome. If you change the rules
+  in `src/core/fillers.ts`, run `pnpm eval` before and after and put both
+  numbers in your PR (see [eval/README.md](eval/README.md)).
+- **Add benchmark clips** — more varied speech (accents, presentations,
+  interviews) makes the accuracy numbers more trustworthy. Clips must come from
+  openly licensed sources; see [eval/README.md](eval/README.md).
 - **Improve docs** — if you got stuck, the next person will too.
 - **Write code** — look for issues labelled
   [`good first issue`](https://github.com/Shreya20002/glossa/labels/good%20first%20issue)
@@ -75,6 +78,7 @@ pnpm dev
 | `pnpm format`       | Auto-fix formatting.                                                                            |
 | `pnpm test`         | Unit tests only (fast).                                                                         |
 | `pnpm test:e2e`     | End-to-end tests: launches the real app with a fake microphone.                                 |
+| `pnpm eval`         | Accuracy benchmark on real meetings: how many fillers and words Glossa catches.                 |
 | `pnpm build:unpack` | Build a runnable app folder without making an installer.                                        |
 
 ## Making a change

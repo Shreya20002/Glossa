@@ -7,7 +7,7 @@ const run = promisify(execFile)
 /** Spoken sentences, each followed by this much silence. */
 export const PAUSE_MS = 4_000
 const SENTENCES = [
-  'Thanks for joining today. I want to walk you through the plan for the next quarter, and then leave plenty of time for questions.',
+  'Thanks for joining today. Um, I want to walk you through the plan for the next quarter, and then leave plenty of time for questions.',
   'First, we will focus on the onboarding flow, because that is where most new users get stuck.',
 ]
 

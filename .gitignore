@@ -12,6 +12,9 @@ release/
 # AI model files (downloaded by `pnpm fetch-models`; too big for git)
 models/
 
+# Benchmark audio (downloaded by `pnpm eval`)
+eval/.data/
+
 # Test and coverage reports
 coverage/
 test-results/
