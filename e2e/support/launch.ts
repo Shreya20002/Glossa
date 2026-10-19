@@ -19,6 +19,19 @@ function packagedExecutable(): string | undefined {
   throw new Error(`No packaged app to test on ${process.platform}`)
 }
 
+/**
+ * On macOS, Chromium's audio system runs in its own sandboxed process, and that
+ * sandbox may not read the test clip ("Failed to read … as input to the fake
+ * device"), so the fake microphone plays silence. These switches let the audio
+ * system read the file: either without its sandbox, or inside the main process.
+ * Test-only: Glossa itself never reads audio files, and every other sandbox
+ * (including the one around its windows) stays on.
+ */
+function macOSFakeMicrophoneArgs(): string[] {
+  if (process.platform !== 'darwin') return []
+  return ['--disable-features=AudioServiceSandbox,AudioServiceOutOfProcess']
+}
+
 /** Launches Glossa with a fake microphone that plays `clipPath` on a loop. */
 export async function launchWithFakeMicrophone(clipPath: string): Promise<ElectronApplication> {
   const args = [
@@ -28,6 +41,7 @@ export async function launchWithFakeMicrophone(clipPath: string): Promise<Electr
     // Send Chromium's internal warnings (e.g. from its audio system) to stderr,
     // so a failing test can print them.
     '--enable-logging=stderr',
+    ...macOSFakeMicrophoneArgs(),
   ]
   const executablePath = packagedExecutable()
   const app = await electron.launch(

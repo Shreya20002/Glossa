@@ -134,7 +134,7 @@ A **matrix** runs the same job once per value, in parallel, so you get
 **Build (windows-latest)** and **Build (macos-latest)**. `fail-fast: false`
 lets both finish even if one fails, so you see every problem at once.
 
-Each run of the job does five things:
+Each run of the job does six things:
 
 1. **Restore the AI models from the cache** (`actions/cache`). The cache `key`
    is a fingerprint of `scripts/fetch-models.mjs`, so the cache is reused until
@@ -152,9 +152,16 @@ Each run of the job does five things:
    then clicks Start, watches the overlay, clicks Stop and checks the summary.
    This proves the models and native onnxruntime files are bundled correctly on
    **both** platforms.
-5. **On failure only** (`if: failure()`), upload the test report and
-   screenshots as an **artifact**: a downloadable zip at the bottom of the
-   run's summary page, kept for 7 days.
+5. **Publish e2e diagnostics** (`if: always()`, so even after a failure).
+   The test also measures the fake microphone directly and saves a short
+   report: the speech clip's format, what each window shows, how loud the
+   microphone is, and Chromium's audio warnings. This step posts that report as
+   an **annotation** on the run page. Raw logs need a signed-in admin, but
+   annotations can be read by anyone, including contributors and AI agents
+   helping you debug.
+6. **On failure only** (`if: failure()`), upload the test report as an
+   **artifact**: a downloadable zip at the bottom of the run's summary page,
+   kept for 7 days.
 
 The job is still called `Build (…)` even though it does more now, because
 your ruleset requires checks **by name**. Renaming it would leave the ruleset
