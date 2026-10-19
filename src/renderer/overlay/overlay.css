@@ -7,6 +7,7 @@
   --speaking: #4cd68f;
   --pace-slow: #f5c26b;
   --pace-fast: #ff8a65;
+  --monologue: 143, 166, 255;
 
   font-family:
     system-ui,
@@ -49,6 +50,40 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
   /* Lets the user drag the overlay by its body, like a title bar. */
   -webkit-app-region: drag;
+}
+
+/*
+ * After a minute of talking without a real pause, the pill pulses: a soft ring
+ * that grows and fades, easy to notice from the corner of your eye. There's no
+ * sound, because the microphone would hear it.
+ */
+.pill[data-monologue='true'] {
+  border-color: rgba(var(--monologue), 0.7);
+  animation: monologue-pulse 2.4s ease-out infinite;
+}
+
+@keyframes monologue-pulse {
+  from {
+    box-shadow:
+      0 6px 18px rgba(0, 0, 0, 0.28),
+      0 0 0 0 rgba(var(--monologue), 0.6);
+  }
+
+  to {
+    box-shadow:
+      0 6px 18px rgba(0, 0, 0, 0.28),
+      0 0 0 8px rgba(var(--monologue), 0);
+  }
+}
+
+/* No movement for people who've asked their system for less: a steady ring instead. */
+@media (prefers-reduced-motion: reduce) {
+  .pill[data-monologue='true'] {
+    animation: none;
+    box-shadow:
+      0 6px 18px rgba(0, 0, 0, 0.28),
+      0 0 0 3px rgba(var(--monologue), 0.6);
+  }
 }
 
 .dot {
@@ -117,4 +152,14 @@ body {
   height: 10px;
   background: var(--pill-text);
   border-radius: 2px;
+}
+
+/* Read out by screen readers, not shown. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

@@ -10,6 +10,7 @@
   --error: #b42318;
   --pace-slow: #b7791f;
   --pace-fast: #c2410c;
+  --monologue: #3c5bd6;
 
   color-scheme: light dark;
   font-family:
@@ -34,6 +35,7 @@
     --error: #ff8a80;
     --pace-slow: #f5c26b;
     --pace-fast: #ff8a65;
+    --monologue: #8fa6ff;
   }
 }
 
@@ -50,7 +52,7 @@ body {
 .home {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   min-height: 100vh;
   padding: 28px 28px 16px;
 }
@@ -81,7 +83,7 @@ body {
 .features li {
   display: flex;
   flex-direction: column;
-  padding: 8px 14px;
+  padding: 6px 14px;
 }
 
 .features li + li {
@@ -224,6 +226,17 @@ footer {
 .live-label {
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.monologue {
+  margin: 0;
+  padding: 8px 12px;
+  color: var(--monologue);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid var(--monologue);
+  border-radius: 8px;
 }
 
 .message {

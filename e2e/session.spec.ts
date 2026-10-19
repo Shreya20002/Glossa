@@ -56,12 +56,16 @@ test('a session measures talk time from the microphone', async () => {
     await expect(fillers, 'the "um" should be counted').not.toHaveText('0')
     console.log(`Fillers: ${await fillers.innerText()}`)
 
+    // Short sentences with real pauses between them are conversation, not a monologue.
+    await expect(overlay.getByTestId('pill')).toHaveAttribute('data-monologue', 'false')
+
     // Stopping closes the overlay and shows a summary in the main window.
     await main.getByRole('button', { name: 'Stop session' }).click()
     const summary = main.getByTestId('last-session')
     await expect(summary).toContainText('You spoke for')
     await expect(summary).toContainText('words per minute')
     await expect(summary).toContainText('um ×')
+    await expect(summary).toContainText('Longest turn: 0:')
     await expect.poll(() => app.windows().length).toBe(1)
 
     if (process.env['GLOSSA_E2E_DIAGNOSTICS']) await printDiagnostics(app, [clipInfo])

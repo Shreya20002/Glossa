@@ -3,7 +3,7 @@ import { fillerLabel } from '../../core/fillers'
 import type { FillerSummary } from '../../core/fillers'
 import { formatDuration, formatPercent } from '../../core/format'
 import type { PaceBand } from '../../core/pace'
-import type { LiveMetrics } from '../../core/session'
+import type { LiveMetrics, SessionSummary } from '../../core/session'
 import type { SessionEnded } from '../../shared/ipc'
 import { describeMicrophoneError, startMicrophoneCapture } from '../audio/microphone'
 import type { MicrophoneCapture } from '../audio/microphone'
@@ -13,7 +13,7 @@ const FEATURES = [
   { name: 'Talk time', detail: 'How much of the session you spend speaking' },
   { name: 'Pace', detail: 'Words per minute, with a nudge when you rush' },
   { name: 'Filler words', detail: '"um", "uh", "you know"… counted live' },
-  { name: 'Monologue alert', detail: 'A soft pulse after a minute without a pause', soon: true },
+  { name: 'Monologue alert', detail: 'A soft pulse after a minute without a pause' },
   { name: 'Report card', detail: 'Your progress since last time', soon: true },
 ] as const
 
@@ -36,6 +36,19 @@ function describeFillers(fillers: FillerSummary): string {
   const rate = fillers.perMinute === null ? '' : ` (${fillers.perMinute} per minute)`
   const top = fillers.top.map(({ filler, count }) => `${fillerLabel(filler)} ×${count}`)
   return `${fillers.total} filler ${fillers.total === 1 ? 'word' : 'words'}${rate}: ${top.join(', ')}.`
+}
+
+/**
+ * "Longest turn: 2:14 (3 turns over a minute)." A turn is talking with only
+ * short pauses, so it can be longer than your total speaking time. Empty if
+ * you never spoke.
+ */
+function describeLongestTurn(summary: SessionSummary): string {
+  if (summary.longestTurnMs === 0) return ''
+  const longest = `Longest turn: ${formatDuration(summary.longestTurnMs)}`
+  return summary.monologues > 1
+    ? `${longest} (${summary.monologues} turns over a minute).`
+    : `${longest}.`
 }
 
 type Phase = 'idle' | 'starting' | 'live' | 'stopping'
@@ -143,7 +156,14 @@ export function App() {
               <span className="live-label">elapsed</span>
             </div>
           </div>
-          <p className="hint">The overlay in the corner of your screen shows the same numbers.</p>
+          {metrics?.isMonologue ? (
+            <p className="monologue" data-testid="monologue-alert">
+              You've been talking for {formatDuration(metrics.currentTurnMs)}. Pause to let others
+              come in.
+            </p>
+          ) : (
+            <p className="hint">The overlay in the corner of your screen shows the same numbers.</p>
+          )}
         </section>
       ) : (
         <ul className="features">
@@ -210,7 +230,8 @@ export function App() {
             {formatPercent(lastSession.summary.talkRatio)} of the time)
             {lastSession.summary.wordsPerMinute !== null &&
               ` at ${lastSession.summary.wordsPerMinute} words per minute`}
-            . {describeFillers(lastSession.summary.fillers)}
+            . {describeFillers(lastSession.summary.fillers)}{' '}
+            {describeLongestTurn(lastSession.summary)}
           </p>
         )}
         {!error && phase === 'idle' && lastSession && !lastSession.ok && (
