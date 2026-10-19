@@ -1,0 +1,110 @@
+/* The overlay window itself is transparent; only the pill is visible. */
+:root {
+  --pill-bg: rgba(22, 24, 29, 0.9);
+  --pill-text: #f3f2ef;
+  --pill-muted: #a3a6ad;
+  --pill-border: rgba(255, 255, 255, 0.08);
+  --speaking: #4cd68f;
+
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  user-select: none;
+}
+
+#root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.pill {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  height: 48px;
+  padding: 0 8px 0 18px;
+  color: var(--pill-text);
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  /* Lets the user drag the overlay by its body, like a title bar. */
+  -webkit-app-region: drag;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: var(--pill-muted);
+  border-radius: 50%;
+  opacity: 0.45;
+  transition:
+    background 150ms,
+    opacity 150ms,
+    box-shadow 150ms;
+}
+
+.dot[data-speaking='true'] {
+  background: var(--speaking);
+  opacity: 1;
+  box-shadow: 0 0 0 4px rgba(76, 214, 143, 0.18);
+}
+
+.stat {
+  display: flex;
+  gap: 5px;
+  align-items: baseline;
+}
+
+.value {
+  font-size: 1.15rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  color: var(--pill-muted);
+  font-size: 0.8rem;
+}
+
+.stop {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 4px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.stop:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.stop-icon {
+  width: 10px;
+  height: 10px;
+  background: var(--pill-text);
+  border-radius: 2px;
+}

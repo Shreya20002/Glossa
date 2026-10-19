@@ -65,9 +65,11 @@ jobs:
       - name: Unit tests (Vitest)
         run: pnpm test
 
-  # Job 2: build the real app on both platforms Glossa supports. This catches
-  # problems the checks can't, like a broken build config or an OS-specific
-  # path bug. It runs at the same time as "checks" to save waiting time.
+  # Job 2: build the real app on both platforms Glossa supports, then run it
+  # end to end with a fake microphone. This catches problems the checks can't:
+  # a broken build config, a model that isn't bundled, an OS-specific bug.
+  # It runs at the same time as "checks" to save waiting time.
+  # (The job keeps its original name because the main-branch ruleset requires it.)
   build:
     name: Build (${{ matrix.os }})
     # A "matrix" runs this same job once per entry, in parallel.
@@ -89,9 +91,48 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
+      # Models only change when scripts/fetch-models.mjs changes, so keep them
+      # between runs instead of downloading them every time.
+      - name: Cache AI models
+        uses: actions/cache@v6
+        with:
+          path: models
+          key: models-${{ hashFiles('scripts/fetch-models.mjs') }}
+
+      # Downloads anything missing from the cache, and verifies every checksum.
+      - name: Fetch AI models
+        run: pnpm fetch-models
+
       # Compile and package an unpacked app folder (no installer, no signing).
       - name: Build unpacked app
         run: pnpm build:unpack
         env:
           # No signing certificates in CI yet, so don't go looking for any.
           CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      # Launch the packaged app exactly as users would, feed it speech through a
+      # fake microphone, and check the overlay. See e2e/session.spec.ts.
+      - name: End-to-end tests (packaged app)
+        run: pnpm exec playwright test
+        env:
+          GLOSSA_E2E_PACKAGED: '1'
+          # Always measure the microphone and save a short report, pass or fail.
+          GLOSSA_E2E_DIAGNOSTICS: '1'
+
+      # Show that report as an annotation on the run page. Unlike raw logs,
+      # annotations can be read by anyone, including outside contributors.
+      - name: Publish e2e diagnostics
+        if: always()
+        run: node e2e/support/publishDiagnostics.mjs
+
+      # If the tests fail, keep the report and screenshots so you can see why.
+      # Download them from the "Artifacts" section of the run's summary page.
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-report-${{ matrix.os }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

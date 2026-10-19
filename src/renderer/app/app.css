@@ -6,6 +6,8 @@
   --border: #e6e3dc;
   --accent: #3c5bd6;
   --accent-text: #ffffff;
+  --speaking: #1f9d61;
+  --error: #b42318;
 
   color-scheme: light dark;
   font-family:
@@ -26,6 +28,8 @@
     --border: #2c3037;
     --accent: #8fa6ff;
     --accent-text: #10131a;
+    --speaking: #4cd68f;
+    --error: #ff8a80;
   }
 }
 
@@ -42,9 +46,9 @@ body {
 .home {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 18px;
   min-height: 100vh;
-  padding: 32px 28px 20px;
+  padding: 28px 28px 16px;
 }
 
 .wordmark {
@@ -73,7 +77,7 @@ body {
 .features li {
   display: flex;
   flex-direction: column;
-  padding: 10px 14px;
+  padding: 8px 14px;
 }
 
 .features li + li {
@@ -122,4 +126,100 @@ footer {
   color: var(--muted);
   font-size: 0.8rem;
   text-align: center;
+}
+
+.soon {
+  margin-left: 8px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  vertical-align: 2px;
+}
+
+.microphone {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.microphone select {
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.live {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.live-status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  font-weight: 600;
+}
+
+.live-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--muted);
+  border-radius: 50%;
+  opacity: 0.5;
+  transition:
+    background 150ms,
+    opacity 150ms;
+}
+
+.live-dot[data-speaking='true'] {
+  background: var(--speaking);
+  opacity: 1;
+}
+
+.live-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.live-stats div {
+  display: flex;
+  flex-direction: column;
+}
+
+.live-value {
+  font-size: 2rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.live-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.message {
+  margin: 0;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.message.error {
+  color: var(--error);
 }

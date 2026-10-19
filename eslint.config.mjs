@@ -38,9 +38,16 @@ export default defineConfig([
   js.configs.recommended,
   tseslint.configs.recommended,
 
-  // Main process, preload, and config files run in Node.js.
+  // Main process, engine, preload, scripts, e2e tests and config files run in Node.js.
   {
-    files: ['src/main/**', 'src/preload/**', '*.config.{ts,mts,mjs}'],
+    files: [
+      'src/main/**',
+      'src/engine/**',
+      'src/preload/**',
+      'scripts/**',
+      'e2e/**',
+      '*.config.{ts,mts,mjs}',
+    ],
     languageOptions: { globals: globals.node },
   },
 

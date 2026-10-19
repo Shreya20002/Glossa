@@ -14,23 +14,44 @@ directories:
   output: release/${version}
 
 # Only the compiled output goes into the app; source code and tests stay out.
+# (Packages listed under "dependencies" in package.json are added automatically.)
 files:
   - out/**
 
+# The AI models (downloaded by `pnpm fetch-models`) ship next to the app, in
+# its "resources" folder, so Glossa works offline from the first launch.
+extraResources:
+  - from: models
+    to: models
+    filter: ['*.onnx']
+
 # Pack app files into a single archive (app.asar). Faster startup and tidier.
 asar: true
+# Native libraries can't be loaded from inside an archive, so keep onnxruntime's
+# binaries as normal files next to it (in app.asar.unpacked).
+asarUnpack:
+  - node_modules/onnxruntime-node/bin/**
 
 # Glossa uses only prebuilt native packages, so never try to compile anything.
 npmRebuild: false
 
 win:
   target: nsis
+  # onnxruntime ships binaries for every OS; keep only the Windows ones.
+  files:
+    - '!node_modules/onnxruntime-node/bin/napi-v*/{darwin,linux}/**'
 nsis:
   artifactName: ${productName}-${version}-setup.${ext}
 
 mac:
   target: dmg
   category: public.app-category.productivity
+  # onnxruntime has no Intel Mac build, so Glossa supports Apple Silicon only.
+  files:
+    - '!node_modules/onnxruntime-node/bin/napi-v*/{win32,linux}/**'
+  # The text macOS shows when asking the user for microphone access.
+  extendInfo:
+    NSMicrophoneUsageDescription: Glossa listens to your microphone to coach you while you speak. Audio is analysed on this Mac and is never saved or sent anywhere.
 dmg:
   artifactName: ${productName}-${version}-${arch}.${ext}
 
