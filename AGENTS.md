@@ -11,9 +11,9 @@ React. While the user talks, it shows live talk-time, pace (WPM), filler-word
 count, and a monologue alert, then a post-call report card. All speech
 processing runs locally with prebuilt ONNX models.
 
-**Status:** pre-release, being built step by step. Talk time works end to end;
-pace, fillers, monologue alert and report card are next. Some directories below
-don't exist yet; don't create them unless your task needs them.
+**Status:** pre-release, being built step by step. Talk time and pace work end
+to end; fillers, monologue alert and report card are next. Some directories
+below don't exist yet; don't create them unless your task needs them.
 
 **How it works:** read [docs/architecture.md](docs/architecture.md) before changing `src/`.
 
@@ -40,6 +40,7 @@ src/core/      PURE TypeScript metrics: talk-time, pace, fillers, monologue, rep
 src/renderer/  React UIs: overlay/ and app/; audio/ holds the AudioWorklet
 src/shared/    Types shared across processes (IPC messages)
 scripts/       Dev scripts (e.g. fetch-models with pinned URLs + SHA-256)
+stubs/         Stand-in packages (sharp: transformers.js needs it to load; Glossa has no images)
 e2e/           Playwright end-to-end tests
 eval/          Filler-detection benchmark clips and expected counts
 docs/          architecture.md, privacy.md, maintainer-guide/
@@ -53,8 +54,10 @@ main process → overlay/app windows over IPC.
 1. **No network access.** Do not add telemetry, analytics, remote model
    loading, update checks, CDN assets, or any `fetch`/HTTP call at runtime.
    The only network code allowed is `scripts/fetch-models` (dev/CI time).
-2. **Never persist audio.** Audio stays in memory. Transcripts are discarded at
-   session end. Only aggregate metrics are written to disk.
+2. **Never persist audio.** Audio stays in memory (the engine keeps at most the
+   last 30 s, for transcription). Transcripts are reduced to counts straight
+   away and never stored, logged or shown. Only aggregate metrics are written
+   to disk.
 3. **`src/core/` is pure.** No imports from `electron`, `node:*`, DOM APIs, or
    the engine. Deterministic functions only — inject time instead of calling
    `Date.now()`.

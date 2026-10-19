@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatDuration, formatPercent } from '../../core/format'
+import type { PaceBand } from '../../core/pace'
 import type { LiveMetrics } from '../../core/session'
 import type { SessionEnded } from '../../shared/ipc'
 import { describeMicrophoneError, startMicrophoneCapture } from '../audio/microphone'
@@ -8,11 +9,18 @@ import { loadMicrophoneChoice, saveMicrophoneChoice, useMicrophones } from './us
 
 const FEATURES = [
   { name: 'Talk time', detail: 'How much of the session you spend speaking' },
-  { name: 'Pace', detail: 'Words per minute, with a nudge when you rush', soon: true },
+  { name: 'Pace', detail: 'Words per minute, with a nudge when you rush' },
   { name: 'Filler words', detail: '"um", "uh", "you know"… counted live', soon: true },
   { name: 'Monologue alert', detail: 'A soft pulse after a minute without a pause', soon: true },
   { name: 'Report card', detail: 'Your progress since last time', soon: true },
 ] as const
+
+const PACE_LABEL: Record<PaceBand | 'none', string> = {
+  none: 'wpm',
+  slow: 'wpm · slow',
+  good: 'wpm · good',
+  fast: 'wpm · fast',
+}
 
 type Phase = 'idle' | 'starting' | 'live' | 'stopping'
 
@@ -105,6 +113,12 @@ export function App() {
               <span className="live-label">talk time</span>
             </div>
             <div>
+              <span className="live-value" data-pace={metrics?.pace ?? 'none'}>
+                {metrics?.wordsPerMinute ?? '—'}
+              </span>
+              <span className="live-label">{PACE_LABEL[metrics?.pace ?? 'none']}</span>
+            </div>
+            <div>
               <span className="live-value">{formatDuration(metrics?.elapsedMs ?? 0)}</span>
               <span className="live-label">elapsed</span>
             </div>
@@ -173,7 +187,10 @@ export function App() {
           <p className="message" data-testid="last-session">
             Last session: {formatDuration(lastSession.summary.durationMs)}. You spoke for{' '}
             {formatDuration(lastSession.summary.speakingMs)} (
-            {formatPercent(lastSession.summary.talkRatio)} of the time).
+            {formatPercent(lastSession.summary.talkRatio)} of the time)
+            {lastSession.summary.wordsPerMinute !== null &&
+              ` at ${lastSession.summary.wordsPerMinute} words per minute`}
+            .
           </p>
         )}
         {!error && phase === 'idle' && lastSession && !lastSession.ok && (

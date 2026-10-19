@@ -8,6 +8,8 @@
   --accent-text: #ffffff;
   --speaking: #1f9d61;
   --error: #b42318;
+  --pace-slow: #b7791f;
+  --pace-fast: #c2410c;
 
   color-scheme: light dark;
   font-family:
@@ -30,6 +32,8 @@
     --accent-text: #10131a;
     --speaking: #4cd68f;
     --error: #ff8a80;
+    --pace-slow: #f5c26b;
+    --pace-fast: #ff8a65;
   }
 }
 
@@ -193,7 +197,7 @@ footer {
 
 .live-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
@@ -207,6 +211,14 @@ footer {
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
+}
+
+.live-value[data-pace='slow'] {
+  color: var(--pace-slow);
+}
+
+.live-value[data-pace='fast'] {
+  color: var(--pace-fast);
 }
 
 .live-label {

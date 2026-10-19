@@ -1,0 +1,8 @@
+{
+  "name": "sharp",
+  "version": "0.0.0-glossa-stub",
+  "private": true,
+  "description": "Stand-in for the sharp image library. See README.md.",
+  "license": "Apache-2.0",
+  "main": "index.cjs"
+}

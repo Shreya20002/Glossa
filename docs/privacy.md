@@ -6,12 +6,13 @@ is enforced, so you can check it rather than take our word for it.
 
 ## What Glossa handles
 
-| Data                                                  | Where it lives                                                                                  | How long                                                           |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| **Microphone audio**                                  | Memory only: the app window → the engine process                                                | Each 32 ms chunk is analysed, then dropped. Never written to disk. |
-| **Live numbers** (talk time, elapsed time)            | Memory                                                                                          | Until the session ends                                             |
-| **Session summary** (duration, speaking time, talk %) | Memory today. The report card in a later version will save these numbers on your computer only. | —                                                                  |
-| **Your microphone choice**                            | Local app storage on your computer                                                              | Until you change it                                                |
+| Data                                                                            | Where it lives                                                                                  | How long                                                                                                                                                                      |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Microphone audio**                                                            | Memory only: the app window → the engine process                                                | The most recent **30 seconds** are kept in memory, so a finished phrase can be transcribed; older audio is overwritten. Cleared when the session ends. Never written to disk. |
+| **What you said** (the transcript)                                              | Memory, inside the engine                                                                       | **Reduced to a word count immediately**: the text itself is never kept, shown or saved.                                                                                       |
+| **Live numbers** (talk time, pace, elapsed time)                                | Memory                                                                                          | Until the session ends                                                                                                                                                        |
+| **Session summary** (duration, speaking time, talk %, word count, average pace) | Memory today. The report card in a later version will save these numbers on your computer only. | —                                                                                                                                                                             |
+| **Your microphone choice**                                                      | Local app storage on your computer                                                              | Until you change it                                                                                                                                                           |
 
 Glossa has no accounts, no analytics, no crash reporting and no update checks.
 
@@ -25,9 +26,11 @@ Glossa has no accounts, no analytics, no crash reporting and no update checks.
 - **Microphone only.** Glossa grants itself exactly one permission, the
   microphone, and only for its own pages. Camera, location, notifications,
   screen capture and everything else are denied.
-- **Models run locally.** The speech models ship inside the app and run on your
-  CPU. They were downloaded once, at build time, from pinned sources with
-  verified checksums.
+- **Models run locally.** The speech models (Silero VAD for detecting speech,
+  Whisper for turning it into words) ship inside the app and run on your CPU.
+  They were downloaded once, at build time, from pinned sources with verified
+  checksums, and the speech recognizer is set to load from disk only, never the
+  internet.
 
 ## Permissions you'll see
 

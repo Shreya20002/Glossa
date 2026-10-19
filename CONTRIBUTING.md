@@ -59,7 +59,7 @@ cd glossa
 # 2. Install dependencies (exactly the versions in pnpm-lock.yaml)
 pnpm install
 
-# 3. Download the AI models (one time, a few MB, verified by checksum)
+# 3. Download the AI models (one time, about 46 MB, verified by checksum)
 pnpm fetch-models
 
 # 4. Start the app in development mode (reloads when you save)

@@ -42,9 +42,20 @@ test('a session measures talk time from the microphone', async () => {
     expect(talkPercent).toBeGreaterThanOrEqual(25)
     expect(talkPercent).toBeLessThanOrEqual(90)
 
+    // Pace appears once the first sentence (followed by a pause) has been
+    // transcribed. Text-to-speech talks at a normal-to-brisk 140–200 WPM.
+    const pace = overlay.getByTestId('pace')
+    await expect(pace, 'pace should be measured').toHaveText(/^\d+$/, { timeout: 20_000 })
+    const wordsPerMinute = Number(await pace.innerText())
+    console.log(`Pace: ${wordsPerMinute} wpm`)
+    expect(wordsPerMinute).toBeGreaterThanOrEqual(100)
+    expect(wordsPerMinute).toBeLessThanOrEqual(260)
+
     // Stopping closes the overlay and shows a summary in the main window.
     await main.getByRole('button', { name: 'Stop session' }).click()
-    await expect(main.getByTestId('last-session')).toContainText('You spoke for')
+    const summary = main.getByTestId('last-session')
+    await expect(summary).toContainText('You spoke for')
+    await expect(summary).toContainText('words per minute')
     await expect.poll(() => app.windows().length).toBe(1)
 
     if (process.env['GLOSSA_E2E_DIAGNOSTICS']) await printDiagnostics(app, [clipInfo])

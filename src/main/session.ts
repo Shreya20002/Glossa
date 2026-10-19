@@ -4,17 +4,20 @@ import { BrowserWindow } from 'electron'
 import type { EngineEvent } from '../shared/engine'
 import { IpcChannel } from '../shared/ipc'
 import type { SessionEnded, StartSessionResult } from '../shared/ipc'
-import { ModelFile } from '../shared/models'
+import { REQUIRED_MODEL_FILES } from '../shared/models'
 import { modelsDir } from './engine'
 import type { EngineHost } from './engine'
 import { ensureMicrophoneAccess } from './permissions'
 import { createOverlayWindow } from './windows'
 
-/** Loading a model for the first time can take a few seconds on a slow disk. */
-const START_TIMEOUT_MS = 15_000
+/**
+ * Loading the models for the first time (~45 MB) can take a while on a slow
+ * disk or while antivirus software scans them.
+ */
+const START_TIMEOUT_MS = 30_000
 
-/** On stop, the engine only has to finish the audio already queued. */
-const STOP_TIMEOUT_MS = 5_000
+/** On stop, the engine finishes queued audio and transcribes the last sentence. */
+const STOP_TIMEOUT_MS = 15_000
 
 type Phase = 'idle' | 'starting' | 'live' | 'stopping'
 
@@ -38,7 +41,7 @@ export class SessionController {
       return { ok: false, reason: 'already-running', message: 'A session is already running.' }
     }
     const dir = modelsDir()
-    if (!existsSync(join(dir, ModelFile.voiceActivity))) {
+    if (!REQUIRED_MODEL_FILES.every((file) => existsSync(join(dir, file)))) {
       return {
         ok: false,
         reason: 'models-missing',

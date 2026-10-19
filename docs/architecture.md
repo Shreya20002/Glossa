@@ -18,11 +18,12 @@ by sending messages.
  └───────┬───────────────────────────────▲────────────────┘
          │ postMessage                   │ metrics, 4× per second
  ┌───────▼────────── Engine (utility process) ────────────┐
- │ FrameBuffer → Silero VAD (ONNX) → src/core metrics     │
+ │ FrameBuffer → Silero VAD → src/core (talk time, chunks)│
+ │                 finished phrase ─► Whisper ─► word count│
  └────────────────────────────────────────────────────────┘
                  main broadcasts metrics to every window
  ┌──────────────── Overlay window (renderer) ─────────────┐
- │ ● 64% talk · 4:05 time · ■                             │
+ │ ● 64% talk · 152 wpm · 4:05 time · ■                   │
  └────────────────────────────────────────────────────────┘
 ```
 
@@ -46,16 +47,22 @@ by sending messages.
    Glossa page and is a sensible size (`src/main/ipc.ts`), then forwards it to
    the engine.
 4. **Detection**: the engine (`src/engine/index.ts`) cuts the audio into exact
-   512-sample frames (`frameBuffer.ts`) and asks **Silero VAD**
-   (`sileroVad.ts`): "how likely is this frame to be speech?". It takes about
-   0.3 ms per frame.
+   512-sample frames (`frameBuffer.ts`), remembers the last 30 seconds
+   (`audioHistory.ts`), and asks **Silero VAD** (`sileroVad.ts`): "how likely is
+   this frame to be speech?". That takes about 0.3 ms per frame.
 5. **Metrics**: each probability goes into `src/core/session.ts`, which turns
-   probabilities into speech start/end events (`voiceActivity.ts`) and keeps
-   the talk-time totals (`talkTime.ts`).
-6. **Display**: four times a second, and whenever speech starts or stops, the
-   engine sends `LiveMetrics` to the main process, which broadcasts them to
-   every window.
-7. **Forget**: the audio frame is dropped. Nothing is written to disk.
+   probabilities into speech start/end events (`voiceActivity.ts`), keeps the
+   talk-time totals (`talkTime.ts`), and groups speech into phrases
+   (`speechChunks.ts`).
+6. **Transcription**: when a phrase ends, its audio is cut out of the history
+   and handed to **Whisper** (`speechRecognizer.ts`), which runs in the
+   background without holding up speech detection. The text is reduced to a
+   word count (`words.ts`) and fed back into the session for pace (`pace.ts`).
+7. **Display**: four times a second, and whenever speech starts or stops or a
+   phrase is transcribed, the engine sends `LiveMetrics` to the main process,
+   which broadcasts them to every window.
+8. **Forget**: audio older than 30 seconds is overwritten, and transcripts are
+   never kept, only their word counts. Nothing is written to disk.
 
 ## Why `src/core` is pure
 
@@ -89,6 +96,83 @@ probabilities flicker, so `voiceActivity.ts` smooths them:
 All four numbers are named constants with comments explaining them. Change
 them only with tests showing why.
 
+## Speech recognition and pace
+
+Whisper turns speech into text, and Glossa counts the words. Feeding it well is
+most of the work, because Whisper has two habits (see the spike below):
+
+- **It invents words for silence and tiny snippets.** One second of silence
+  comes back as "you", and half a second of speech as "Thanks for watching."
+- **Every call costs about 0.6 s**, whatever the length, because it always
+  processes a 30-second window.
+
+So `speechChunks.ts` groups speech into **phrases** before anything is
+transcribed:
+
+| Rule                                        | Value | Why                                                                                            |
+| ------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------- |
+| A pause this long ends a phrase             | 2 s   | Shorter pauses are part of how someone talks; longer ones usually mean someone else is talking |
+| Close a long phrase at the next pause after | 12 s  | So pace keeps updating during a monologue                                                      |
+| Hard limit, even mid-speech                 | 25 s  | Whisper can't take more than 30 s at once                                                      |
+| Skip phrases with less speech than          | 1 s   | That's where Whisper invents words                                                             |
+
+Only speech ever reaches Whisper, never silence, and each phrase gets 200 ms of
+padding on each side so its first and last words are heard whole.
+
+**Pace** (`pace.ts`) is words ÷ the time spent saying them, over the phrases
+spoken in the **last minute**. Natural pauses inside a phrase count, but the
+silences between turns don't, which matches how public-speaking advice measures
+pace. It shows nothing until there are at least 5 seconds of speech to judge
+from. Bands: **under 110 wpm is slow, over 170 is fast**. Conversational English
+is typically 120–150, and presentations 130–160.
+
+Every word counts, including "um", because fillers take time to say too.
+
+## Choosing the speech recognizer (spike, October 2026)
+
+Before building pace, a short experiment compared Whisper setups running
+locally through [transformers.js](https://github.com/huggingface/transformers.js).
+Four clips with known text were made with Windows text-to-speech: plain speech,
+vocal fillers (um/uh), lexical fillers ("you know", "basically"…) and very fast
+speech (about 470 wpm).
+
+| Setup                   | Word count at normal pace | um/uh kept | Word errors, fast clip | Time per 15 s clip | Peak memory |
+| ----------------------- | ------------------------- | ---------- | ---------------------- | ------------------ | ----------- |
+| **tiny.en** ✅          | exact                     | **5 of 5** | 24%                    | **~1.9 s**         | **515 MB**  |
+| tiny.en + filler prompt | exact                     | 5 of 5     | 41%                    | ~2.0 s             | 517 MB      |
+| base.en                 | exact                     | **0 of 5** | 17%                    | ~2.8 s             | 664 MB      |
+| base.en + filler prompt | exact                     | 0 of 5     | 17%                    | ~3.1 s             | 686 MB      |
+
+**Decision: Whisper tiny.en, no prompt.**
+
+- **The bigger model deleted every "um" and "uh"**, even with the well-known
+  "filler prompt" trick. Whisper is trained on cleaned-up transcripts, and the
+  larger model has learned that habit more strongly. Filler counting (Step 4)
+  depends on keeping them.
+- tiny.en was word-perfect at normal pace, about 1.5× faster, and used about
+  150 MB less memory.
+- It was less accurate on extreme speed, but at 470 wpm the pace meter says
+  "fast" either way.
+- The prompt only made the fast clip worse.
+
+**Running it with one CPU thread** was as fast as using all of them (~1.4 s for
+10 s of speech either way), because this small model can't split its work
+across cores well. It used about **a third of the CPU time**, leaving room for
+the meeting app.
+
+**Caveat:** text-to-speech pronounces "um" crisply. Real, mumbled fillers are
+harder, so filler accuracy will be measured on real recordings in Step 4.
+
+**Also considered:** sherpa-onnx (prebuilt, supports Whisper and Moonshine).
+It wasn't needed, and it would have added a second copy of onnxruntime.
+
+### The `sharp` stand-in
+
+transformers.js also supports image models, so it loads the `sharp` image
+library at startup and refuses to start without it. Glossa never touches
+images, so `package.json` swaps in a tiny stand-in (`stubs/sharp/`, explained
+in its README) instead of shipping about 20 MB of native image code.
+
 ## The session lifecycle
 
 `src/main/session.ts` runs one session at a time:
@@ -101,33 +185,36 @@ idle ──Start──► starting ──engine ready──► live ──Stop�
 ```
 
 On start it checks that the models exist, asks macOS for microphone permission
-(`permissions.ts`), waits for the engine to load the model, and opens the
-overlay. A session ends when you press Stop in either window, close the app
-window, or close the overlay, or when the engine reports an error. Every window
-is then told why with a `session:ended` message.
+(`permissions.ts`), waits for the engine to load both models, and opens the
+overlay. On stop, the engine transcribes the last phrase before sending the
+summary, so the final sentence counts. A session ends when you press Stop in
+either window, close the app window, or close the overlay, or when the engine
+reports an error. Every window is then told why with a `session:ended` message.
 
 ## Security layers
 
-| Layer                         | Where                                  | What it stops                                                                |
-| ----------------------------- | -------------------------------------- | ---------------------------------------------------------------------------- |
-| Content Security Policy       | each `index.html`                      | Pages loading code or connecting anywhere outside Glossa                     |
-| Request filter                | `security.ts` → `blockNetworkRequests` | Any request that would leave the computer                                    |
-| Permission handler            | `security.ts` → `isMicrophoneRequest`  | Everything except microphone access for Glossa's own pages (no camera, ever) |
-| IPC sender check              | `security.ts` → `isTrustedSender`      | Messages from anything that isn't a Glossa page                              |
-| Sandbox and context isolation | `windows.ts`                           | Page code reaching Node.js or Electron directly                              |
-| Lint rules                    | `eslint.config.mjs`                    | Network code or impure imports being merged at all                           |
+| Layer                         | Where                                  | What it stops                                                                          |
+| ----------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------- |
+| Content Security Policy       | each `index.html`                      | Pages loading code or connecting anywhere outside Glossa                               |
+| Request filter                | `security.ts` → `blockNetworkRequests` | Any request that would leave the computer                                              |
+| Permission handler            | `security.ts` → `isMicrophoneRequest`  | Everything except microphone access for Glossa's own pages (no camera, ever)           |
+| IPC sender check              | `security.ts` → `isTrustedSender`      | Messages from anything that isn't a Glossa page                                        |
+| Sandbox and context isolation | `windows.ts`                           | Page code reaching Node.js or Electron directly                                        |
+| Local-only model loading      | `speechRecognizer.ts`                  | transformers.js downloading anything (`allowRemoteModels = false`, `local_files_only`) |
+| Lint rules                    | `eslint.config.mjs`                    | Network code or impure imports being merged at all                                     |
 
 ## Models
 
-Models are **not** in git. `pnpm fetch-models` downloads each one from a pinned
+Models are **not** in git. `pnpm fetch-models` downloads each file from a pinned
 commit and verifies its SHA-256 checksum (`scripts/fetch-models.mjs`).
 Installers bundle them in the app's `resources/models` folder. In development
 they're read from `models/` in the project folder (`modelsDir()` in
 `src/main/engine.ts`).
 
-| Model             | Size   | Used for         | License |
-| ----------------- | ------ | ---------------- | ------- |
-| Silero VAD v6.2.3 | 2.3 MB | Detecting speech | MIT     |
+| Model                             | Size    | Used for                 | License    |
+| --------------------------------- | ------- | ------------------------ | ---------- |
+| Silero VAD v6.2.3                 | 2.3 MB  | Detecting speech         | MIT        |
+| Whisper tiny.en (ONNX, quantized) | 43.5 MB | Speech to text (7 files) | Apache-2.0 |
 
 ## Platforms
 
@@ -140,6 +227,6 @@ they're read from `models/` in the project folder (`modelsDir()` in
 
 | Test                | Command                           | Covers                                                                                                                                                                                                                                                           |
 | ------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit                | `pnpm test`                       | `src/core` metrics, the frame buffer, security rules                                                                                                                                                                                                             |
-| End-to-end          | `pnpm test:e2e`                   | The real app: Playwright clicks Start while Chromium's **fake microphone** plays a speech clip made by the OS's text-to-speech, then checks the overlay and summary                                                                                              |
+| Unit                | `pnpm test`                       | `src/core` metrics (talk time, phrases, pace, word counts), the frame buffer and audio history, security rules                                                                                                                                                   |
+| End-to-end          | `pnpm test:e2e`                   | The real app: Playwright clicks Start while Chromium's **fake microphone** plays a speech clip made by the OS's text-to-speech, then checks talk time, pace and the summary                                                                                      |
 | Packaged end-to-end | CI only (`GLOSSA_E2E_PACKAGED=1`) | The same test against the packaged app on Windows and macOS: proves models and native files are bundled correctly. On macOS the test disables only Chromium's _audio_ sandbox, which otherwise can't read the clip file; the app itself never reads audio files. |

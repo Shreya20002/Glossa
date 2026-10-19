@@ -46,6 +46,7 @@ export default defineConfig([
       'src/preload/**',
       'scripts/**',
       'e2e/**',
+      'stubs/**',
       '*.config.{ts,mts,mjs}',
     ],
     languageOptions: { globals: globals.node },
