@@ -116,6 +116,14 @@ jobs:
         run: pnpm exec playwright test
         env:
           GLOSSA_E2E_PACKAGED: '1'
+          # Always measure the microphone and save a short report, pass or fail.
+          GLOSSA_E2E_DIAGNOSTICS: '1'
+
+      # Show that report as an annotation on the run page. Unlike raw logs,
+      # annotations can be read by anyone, including outside contributors.
+      - name: Publish e2e diagnostics
+        if: always()
+        run: node e2e/support/publishDiagnostics.mjs
 
       # If the tests fail, keep the report and screenshots so you can see why.
       # Download them from the "Artifacts" section of the run's summary page.

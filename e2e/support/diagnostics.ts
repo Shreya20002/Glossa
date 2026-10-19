@@ -10,8 +10,8 @@ import { recentProcessOutput } from './launch'
  *  - "peak 0.00": the microphone delivers silence (e.g. the clip couldn't be read)
  *  - a healthy peak: audio is fine, so look at the engine instead
  *
- * In GitHub Actions the same report is added to the run's summary page, which
- * (unlike the raw log) can be read without signing in.
+ * CI posts the same report as an annotation on the run, which (unlike the raw
+ * log) anyone can read without signing in.
  */
 export async function printDiagnostics(
   app: ElectronApplication,
@@ -31,15 +31,12 @@ export async function printDiagnostics(
   lines.push(`[app process output, last ${output.length} lines]`, ...output.map((l) => `  ${l}`))
 
   console.log(['──── Diagnostics ────', ...lines, '─────────────────────'].join('\n'))
-  const summaryFile = process.env['GITHUB_STEP_SUMMARY']
-  if (summaryFile) {
-    const report = lines.join('\n').replaceAll('```', "'''")
-    await appendFile(
-      summaryFile,
-      `### E2E diagnostics (${process.platform})\n\n\`\`\`\n${report}\n\`\`\`\n`,
-    )
-  }
+  // Also saved to a file, which CI posts as an annotation on the run (see ci.yml).
+  await appendFile(DIAGNOSTICS_FILE, [...lines, ''].join('\n'))
 }
+
+/** Where diagnostics are saved for CI to publish. */
+const DIAGNOSTICS_FILE = 'test-results/e2e-diagnostics.txt'
 
 /** Opens the (fake) microphone for two seconds and reports what it hears. */
 function probeMicrophone(page: Page): Promise<string> {
