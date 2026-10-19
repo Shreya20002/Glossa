@@ -1,15 +1,16 @@
 import { expect, test } from '@playwright/test'
 import { printDiagnostics } from './support/diagnostics'
-import { launchWithFakeMicrophone } from './support/launch'
+import { launchGlossa } from './support/launch'
 import { createSpeechClip } from './support/speechClip'
 import { describeWav } from './support/wav'
 
-test('a session measures talk time from the microphone', async () => {
+test('a session measures speech from the microphone and saves a report card', async () => {
   const clipPath = test.info().outputPath('speech.wav')
   await createSpeechClip(clipPath)
   const clipInfo = `Speech clip: ${await describeWav(clipPath)}`
   console.log(clipInfo)
-  const app = await launchWithFakeMicrophone(clipPath)
+  const userDataDir = test.info().outputPath('user-data')
+  const app = await launchGlossa({ userDataDir, fakeMicrophoneClip: clipPath })
 
   try {
     const main = await app.firstWindow()
@@ -59,14 +60,27 @@ test('a session measures talk time from the microphone', async () => {
     // Short sentences with real pauses between them are conversation, not a monologue.
     await expect(overlay.getByTestId('pill')).toHaveAttribute('data-monologue', 'false')
 
-    // Stopping closes the overlay and shows a summary in the main window.
+    // Let the second sentence play too, so there's plenty of speech to save.
+    await expect(overlay.getByTestId('elapsed')).toHaveText(/^0:2\d$/, { timeout: 30_000 })
+
+    // Stopping closes the overlay and shows the report card in the main window.
     await main.getByRole('button', { name: 'Stop session' }).click()
-    const summary = main.getByTestId('last-session')
-    await expect(summary).toContainText('You spoke for')
-    await expect(summary).toContainText('words per minute')
-    await expect(summary).toContainText('um ×')
-    await expect(summary).toContainText('Longest turn: 0:')
+    const card = main.getByTestId('report-card')
+    await expect(card).toContainText('Talk time')
+    await expect(card).toContainText('wpm')
+    await expect(card).toContainText('um ×')
+    await expect(card).toContainText('Longest turn')
+    await expect(card, 'the session should be saved').toContainText('Your first report card')
     await expect.poll(() => app.windows().length).toBe(1)
+
+    // "Copy as image" puts a picture of the card on the clipboard.
+    await main.getByRole('button', { name: 'Copy as image' }).click()
+    await expect(main.getByRole('button', { name: 'Copied' })).toBeVisible()
+    const clipboardTypes = await app.evaluate(async ({ clipboard }) => {
+      const [item] = await clipboard.read()
+      return item?.types ?? []
+    })
+    expect(clipboardTypes).toContain('image/png')
 
     if (process.env['GLOSSA_E2E_DIAGNOSTICS']) await printDiagnostics(app, [clipInfo])
   } catch (error) {
@@ -74,5 +88,14 @@ test('a session measures talk time from the microphone', async () => {
     throw error
   } finally {
     await app.close()
+  }
+
+  // The session was saved, so its report card is still there after a restart.
+  const restarted = await launchGlossa({ userDataDir })
+  try {
+    const main = await restarted.firstWindow()
+    await expect(main.getByTestId('report-card')).toContainText('Your first report card')
+  } finally {
+    await restarted.close()
   }
 })

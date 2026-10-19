@@ -23,6 +23,8 @@ const api: GlossaApi = {
   pushAudio: (samples) => ipcRenderer.send(IpcChannel.pushAudio, samples),
   onMetrics: (listener) => subscribe<LiveMetrics>(IpcChannel.sessionMetrics, listener),
   onSessionEnded: (listener) => subscribe<SessionEnded>(IpcChannel.sessionEnded, listener),
+  getLatestReport: () => ipcRenderer.invoke(IpcChannel.latestReport),
+  copyReportImage: (area) => ipcRenderer.invoke(IpcChannel.copyReportImage, area),
 }
 
 contextBridge.exposeInMainWorld('glossa', api)

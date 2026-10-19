@@ -1,4 +1,5 @@
-import type { LiveMetrics, SessionSummary } from '../core/session'
+import type { ReportCard } from '../core/report'
+import type { LiveMetrics } from '../core/session'
 
 /**
  * The contract between the main process and renderer windows.
@@ -15,6 +16,8 @@ export const IpcChannel = {
   pushAudio: 'session:audio',
   sessionMetrics: 'session:metrics',
   sessionEnded: 'session:ended',
+  latestReport: 'report:latest',
+  copyReportImage: 'report:copy-image',
 } as const
 
 export type StartSessionFailure =
@@ -23,7 +26,15 @@ export type StartSessionFailure =
 export type StartSessionResult =
   { ok: true } | { ok: false; reason: StartSessionFailure; message: string }
 
-export type SessionEnded = { ok: true; summary: SessionSummary } | { ok: false; error: string }
+export type SessionEnded = { ok: true; report: ReportCard } | { ok: false; error: string }
+
+/** A rectangle in a window, in CSS pixels from its top-left corner. */
+export interface CaptureArea {
+  x: number
+  y: number
+  width: number
+  height: number
+}
 
 /** The API available to renderer code as `window.glossa`. */
 export interface GlossaApi {
@@ -37,4 +48,8 @@ export interface GlossaApi {
   onMetrics(listener: (metrics: LiveMetrics) => void): () => void
   /** Calls `listener` when a session ends, however it ended. Returns an unsubscribe function. */
   onSessionEnded(listener: (ended: SessionEnded) => void): () => void
+  /** The report card for the most recent saved session, or null before the first one. */
+  getLatestReport(): Promise<ReportCard | null>
+  /** Copies `area` of the calling window (the report card) to the clipboard as an image. */
+  copyReportImage(area: CaptureArea): Promise<void>
 }

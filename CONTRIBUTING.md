@@ -7,8 +7,8 @@ This guide explains how to get set up and how changes get from your computer
 into Glossa. If anything here is confusing, that's a bug in this guide — please
 open an issue or ask in [Discussions](https://github.com/Shreya20002/glossa/discussions).
 
-> **Project status:** pre-release. The app is being built step by step; talk
-> time, pace, filler words and the monologue alert work today.
+> **Project status:** pre-release. The app is being built step by step; all
+> five v1 features work today, and the first release is being prepared.
 > [docs/architecture.md](docs/architecture.md) explains how the pieces fit
 > together.
 

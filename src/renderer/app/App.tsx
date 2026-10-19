@@ -3,10 +3,11 @@ import { fillerLabel } from '../../core/fillers'
 import type { FillerSummary } from '../../core/fillers'
 import { formatDuration, formatPercent } from '../../core/format'
 import type { PaceBand } from '../../core/pace'
-import type { LiveMetrics, SessionSummary } from '../../core/session'
-import type { SessionEnded } from '../../shared/ipc'
+import type { ReportCard as Report } from '../../core/report'
+import type { LiveMetrics } from '../../core/session'
 import { describeMicrophoneError, startMicrophoneCapture } from '../audio/microphone'
 import type { MicrophoneCapture } from '../audio/microphone'
+import { ReportCard } from './ReportCard'
 import { loadMicrophoneChoice, saveMicrophoneChoice, useMicrophones } from './useMicrophones'
 
 const FEATURES = [
@@ -14,7 +15,7 @@ const FEATURES = [
   { name: 'Pace', detail: 'Words per minute, with a nudge when you rush' },
   { name: 'Filler words', detail: '"um", "uh", "you know"… counted live' },
   { name: 'Monologue alert', detail: 'A soft pulse after a minute without a pause' },
-  { name: 'Report card', detail: 'Your progress since last time', soon: true },
+  { name: 'Report card', detail: 'Your progress since last time' },
 ] as const
 
 const PACE_LABEL: Record<PaceBand | 'none', string> = {
@@ -30,34 +31,16 @@ function fillersLabel(fillers: FillerSummary | null): string {
   return top ? `fillers · ${fillerLabel(top.filler)} ×${top.count}` : 'fillers'
 }
 
-/** "7 filler words (2.1 per minute): um ×4, like ×2, you know ×1." */
-function describeFillers(fillers: FillerSummary): string {
-  if (fillers.total === 0) return 'No filler words.'
-  const rate = fillers.perMinute === null ? '' : ` (${fillers.perMinute} per minute)`
-  const top = fillers.top.map(({ filler, count }) => `${fillerLabel(filler)} ×${count}`)
-  return `${fillers.total} filler ${fillers.total === 1 ? 'word' : 'words'}${rate}: ${top.join(', ')}.`
-}
-
-/**
- * "Longest turn: 2:14 (3 turns over a minute)." A turn is talking with only
- * short pauses, so it can be longer than your total speaking time. Empty if
- * you never spoke.
- */
-function describeLongestTurn(summary: SessionSummary): string {
-  if (summary.longestTurnMs === 0) return ''
-  const longest = `Longest turn: ${formatDuration(summary.longestTurnMs)}`
-  return summary.monologues > 1
-    ? `${longest} (${summary.monologues} turns over a minute).`
-    : `${longest}.`
-}
-
 type Phase = 'idle' | 'starting' | 'live' | 'stopping'
 
 export function App() {
   const [version, setVersion] = useState<string>()
   const [phase, setPhase] = useState<Phase>('idle')
   const [metrics, setMetrics] = useState<LiveMetrics | null>(null)
-  const [lastSession, setLastSession] = useState<SessionEnded | null>(null)
+  /** The latest session's report card: from this run, or from the history at startup. */
+  const [report, setReport] = useState<Report | null>(null)
+  /** Why the last session ended early, if it did. */
+  const [sessionError, setSessionError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [microphoneId, setMicrophoneId] = useState(loadMicrophoneChoice)
   const microphones = useMicrophones()
@@ -70,6 +53,13 @@ export function App() {
 
   useEffect(() => {
     void window.glossa.getAppVersion().then(setVersion)
+    // A report from a session that just ended is newer than the saved one.
+    window.glossa
+      .getLatestReport()
+      .then((latest) => setReport((current) => current ?? latest))
+      .catch((loadError: unknown) =>
+        console.error('Could not load the last report card:', loadError),
+      )
   }, [])
 
   useEffect(() => {
@@ -80,7 +70,8 @@ export function App() {
       capture.current = null
       setPhase('idle')
       setMetrics(null)
-      setLastSession(ended)
+      if (ended.ok) setReport(ended.report)
+      setSessionError(ended.ok ? null : ended.error)
     })
     return () => {
       offMetrics()
@@ -104,7 +95,7 @@ export function App() {
       setPhase('live')
     } catch (captureError) {
       await window.glossa.stopSession()
-      setLastSession(null)
+      setSessionError(null)
       setError(describeMicrophoneError(captureError))
     }
   }
@@ -165,14 +156,13 @@ export function App() {
             <p className="hint">The overlay in the corner of your screen shows the same numbers.</p>
           )}
         </section>
+      ) : report ? (
+        <ReportCard report={report} />
       ) : (
         <ul className="features">
           {FEATURES.map((feature) => (
             <li key={feature.name}>
-              <span className="feature-name">
-                {feature.name}
-                {'soon' in feature && <span className="soon">soon</span>}
-              </span>
+              <span className="feature-name">{feature.name}</span>
               <span className="feature-detail">{feature.detail}</span>
             </li>
           ))}
@@ -223,20 +213,9 @@ export function App() {
             {error}
           </p>
         )}
-        {!error && phase === 'idle' && lastSession?.ok && (
-          <p className="message" data-testid="last-session">
-            Last session: {formatDuration(lastSession.summary.durationMs)}. You spoke for{' '}
-            {formatDuration(lastSession.summary.speakingMs)} (
-            {formatPercent(lastSession.summary.talkRatio)} of the time)
-            {lastSession.summary.wordsPerMinute !== null &&
-              ` at ${lastSession.summary.wordsPerMinute} words per minute`}
-            . {describeFillers(lastSession.summary.fillers)}{' '}
-            {describeLongestTurn(lastSession.summary)}
-          </p>
-        )}
-        {!error && phase === 'idle' && lastSession && !lastSession.ok && (
+        {!error && phase === 'idle' && sessionError && (
           <p className="message error" role="alert">
-            The session stopped unexpectedly: {lastSession.error}
+            The session stopped unexpectedly: {sessionError}
           </p>
         )}
       </div>

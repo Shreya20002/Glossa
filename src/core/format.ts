@@ -25,3 +25,12 @@ export function formatPercent(ratio: number): string {
   const clamped = Number.isFinite(ratio) ? Math.min(1, Math.max(0, ratio)) : 0
   return `${Math.round(clamped * 100)}%`
 }
+
+/**
+ * Formats how long a session lasted, for reading at a glance: seconds under a
+ * minute ("24 sec"), otherwise whole minutes ("32 min").
+ */
+export function formatSessionLength(durationMs: number): string {
+  const seconds = Number.isFinite(durationMs) && durationMs > 0 ? Math.floor(durationMs / 1000) : 0
+  return seconds < 60 ? `${seconds} sec` : `${Math.round(seconds / 60)} min`
+}

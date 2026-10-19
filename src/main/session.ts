@@ -1,12 +1,16 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { BrowserWindow } from 'electron'
+import { buildReport, isWorthSaving, TREND_SESSIONS } from '../core/report'
+import type { ReportCard } from '../core/report'
+import type { SessionRecord } from '../core/sessionRecord'
 import type { EngineEvent } from '../shared/engine'
 import { IpcChannel } from '../shared/ipc'
 import type { SessionEnded, StartSessionResult } from '../shared/ipc'
 import { REQUIRED_MODEL_FILES } from '../shared/models'
 import { modelsDir } from './engine'
 import type { EngineHost } from './engine'
+import { appendSessionRecord, readRecentSessionRecords } from './history'
 import { ensureMicrophoneAccess } from './permissions'
 import { createOverlayWindow } from './windows'
 
@@ -23,14 +27,18 @@ type Phase = 'idle' | 'starting' | 'live' | 'stopping'
 
 /**
  * Runs one coaching session at a time: prepares the engine, opens the
- * overlay, forwards microphone audio, and tells every window when it ends.
+ * overlay, forwards microphone audio, and when it ends, saves it to the
+ * history and sends every window its report card.
  */
 export class SessionController {
   private phase: Phase = 'idle'
   private overlay: BrowserWindow | undefined
+  /** When the current session started, by the computer's clock (for the report card's date). */
+  private startedAtMs = 0
 
   constructor(
     private readonly engine: EngineHost,
+    private readonly historyFile: string,
     private readonly devServerUrl: string | undefined,
   ) {
     engine.onEvent((event) => this.onEngineEvent(event))
@@ -74,6 +82,7 @@ export class SessionController {
     // If the overlay is closed some other way (e.g. Cmd+W), end the session too.
     overlay.on('closed', () => void this.stop())
     this.overlay = overlay
+    this.startedAtMs = Date.now()
     this.phase = 'live'
     return { ok: true }
   }
@@ -92,11 +101,31 @@ export class SessionController {
         'sessionEnded',
         STOP_TIMEOUT_MS,
       )
-      ended = { ok: true, summary }
+      ended = { ok: true, report: await this.report({ startedAtMs: this.startedAtMs, summary }) }
     } catch (error) {
       ended = { ok: false, error: errorMessage(error) }
     }
     this.finish(ended)
+  }
+
+  /**
+   * Saves the session to the history (if it's long enough to count) and
+   * builds its report card. If the history can't be read or written, the card
+   * still shows this session, just without comparisons.
+   */
+  private async report(session: SessionRecord): Promise<ReportCard> {
+    let earlier: SessionRecord[] = []
+    let saved = false
+    try {
+      earlier = await readRecentSessionRecords(this.historyFile, TREND_SESSIONS)
+      if (isWorthSaving(session.summary)) {
+        await appendSessionRecord(this.historyFile, session)
+        saved = true
+      }
+    } catch (error) {
+      console.error('[history] could not update the session history:', error)
+    }
+    return buildReport(session, earlier, saved)
   }
 
   private onEngineEvent(event: EngineEvent): void {
