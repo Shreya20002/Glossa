@@ -1,3 +1,4 @@
+import { appendFile } from 'node:fs/promises'
 import type { ElectronApplication, Page } from '@playwright/test'
 import { recentProcessOutput } from './launch'
 
@@ -8,22 +9,36 @@ import { recentProcessOutput } from './launch'
  *  - "audio clock advanced 0.00 s": the audio system never started
  *  - "peak 0.00": the microphone delivers silence (e.g. the clip couldn't be read)
  *  - a healthy peak: audio is fine, so look at the engine instead
+ *
+ * In GitHub Actions the same report is added to the run's summary page, which
+ * (unlike the raw log) can be read without signing in.
  */
-export async function printDiagnostics(app: ElectronApplication): Promise<void> {
-  console.log('──── Diagnostics ────')
+export async function printDiagnostics(
+  app: ElectronApplication,
+  context: string[] = [],
+): Promise<void> {
+  const lines: string[] = [...context]
   for (const page of app.windows()) {
     const text = await page
       .locator('body')
       .innerText()
       .catch(() => '(window closed)')
-    console.log(`[window ${page.url()}]\n${text.replace(/\n+/g, ' | ')}`)
+    lines.push(`[window ${page.url()}]`, text.replace(/\n+/g, ' | '))
   }
   const main = app.windows().find((page) => page.url().includes('/app/'))
-  if (main) console.log(`[microphone probe] ${await probeMicrophone(main)}`)
+  if (main) lines.push(`[microphone probe] ${await probeMicrophone(main)}`)
   const output = recentProcessOutput(app)
-  console.log(`[app process output, last ${output.length} lines]`)
-  for (const line of output) console.log(`  ${line}`)
-  console.log('─────────────────────')
+  lines.push(`[app process output, last ${output.length} lines]`, ...output.map((l) => `  ${l}`))
+
+  console.log(['──── Diagnostics ────', ...lines, '─────────────────────'].join('\n'))
+  const summaryFile = process.env['GITHUB_STEP_SUMMARY']
+  if (summaryFile) {
+    const report = lines.join('\n').replaceAll('```', "'''")
+    await appendFile(
+      summaryFile,
+      `### E2E diagnostics (${process.platform})\n\n\`\`\`\n${report}\n\`\`\`\n`,
+    )
+  }
 }
 
 /** Opens the (fake) microphone for two seconds and reports what it hears. */

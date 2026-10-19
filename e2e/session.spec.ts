@@ -7,7 +7,8 @@ import { describeWav } from './support/wav'
 test('a session measures talk time from the microphone', async () => {
   const clipPath = test.info().outputPath('speech.wav')
   await createSpeechClip(clipPath)
-  console.log(`Speech clip: ${await describeWav(clipPath)}`)
+  const clipInfo = `Speech clip: ${await describeWav(clipPath)}`
+  console.log(clipInfo)
   const app = await launchWithFakeMicrophone(clipPath)
 
   try {
@@ -46,9 +47,9 @@ test('a session measures talk time from the microphone', async () => {
     await expect(main.getByTestId('last-session')).toContainText('You spoke for')
     await expect.poll(() => app.windows().length).toBe(1)
 
-    if (process.env['GLOSSA_E2E_DIAGNOSTICS']) await printDiagnostics(app)
+    if (process.env['GLOSSA_E2E_DIAGNOSTICS']) await printDiagnostics(app, [clipInfo])
   } catch (error) {
-    await printDiagnostics(app)
+    await printDiagnostics(app, [clipInfo])
     throw error
   } finally {
     await app.close()

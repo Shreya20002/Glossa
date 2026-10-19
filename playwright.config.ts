@@ -12,6 +12,7 @@ export default defineConfig({
   retries: process.env['CI'] ? 1 : 0,
   // Only one Glossa can run at a time (single-instance lock).
   workers: 1,
-  reporter: process.env['CI'] ? [['list'], ['html', { open: 'never' }]] : 'list',
+  // In CI, 'github' also turns failures into annotations on the PR.
+  reporter: process.env['CI'] ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
   outputDir: 'test-results',
 })
