@@ -19,11 +19,11 @@ by sending messages.
          │ postMessage                   │ metrics, 4× per second
  ┌───────▼────────── Engine (utility process) ────────────┐
  │ FrameBuffer → Silero VAD → src/core (talk time, chunks)│
- │                 finished phrase ─► Whisper ─► word count│
+ │      finished phrase ─► Whisper ─► word + filler counts │
  └────────────────────────────────────────────────────────┘
                  main broadcasts metrics to every window
  ┌──────────────── Overlay window (renderer) ─────────────┐
- │ ● 64% talk · 152 wpm · 4:05 time · ■                   │
+ │ ● 64% talk · 152 wpm · 3 fillers · 4:05 time · ■       │
  └────────────────────────────────────────────────────────┘
 ```
 
@@ -56,13 +56,14 @@ by sending messages.
    (`speechChunks.ts`).
 6. **Transcription**: when a phrase ends, its audio is cut out of the history
    and handed to **Whisper** (`speechRecognizer.ts`), which runs in the
-   background without holding up speech detection. The text is reduced to a
-   word count (`words.ts`) and fed back into the session for pace (`pace.ts`).
+   background without holding up speech detection. The text is reduced to
+   word and filler counts (`transcript.ts`, `words.ts`, `fillers.ts`) and fed
+   back into the session for pace (`pace.ts`) and fillers.
 7. **Display**: four times a second, and whenever speech starts or stops or a
    phrase is transcribed, the engine sends `LiveMetrics` to the main process,
    which broadcasts them to every window.
 8. **Forget**: audio older than 30 seconds is overwritten, and transcripts are
-   never kept, only their word counts. Nothing is written to disk.
+   never kept, only their word and filler counts. Nothing is written to disk.
 
 ## Why `src/core` is pure
 
@@ -143,28 +144,86 @@ speech (about 470 wpm).
 | base.en                 | exact                     | **0 of 5** | 17%                    | ~2.8 s             | 664 MB      |
 | base.en + filler prompt | exact                     | 0 of 5     | 17%                    | ~3.1 s             | 686 MB      |
 
-**Decision: Whisper tiny.en, no prompt.**
-
-- **The bigger model deleted every "um" and "uh"**, even with the well-known
-  "filler prompt" trick. Whisper is trained on cleaned-up transcripts, and the
-  larger model has learned that habit more strongly. Filler counting (Step 4)
-  depends on keeping them.
-- tiny.en was word-perfect at normal pace, about 1.5× faster, and used about
-  150 MB less memory.
-- It was less accurate on extreme speed, but at 470 wpm the pace meter says
-  "fast" either way.
-- The prompt only made the fast clip worse.
+**Decision (Step 3): Whisper tiny.en, no prompt.** tiny.en was word-perfect at
+normal pace, about 1.5× faster than base.en, and used about 150 MB less memory.
 
 **Running it with one CPU thread** was as fast as using all of them (~1.4 s for
 10 s of speech either way), because this small model can't split its work
 across cores well. It used about **a third of the CPU time**, leaving room for
 the meeting app.
 
-**Caveat:** text-to-speech pronounces "um" crisply. Real, mumbled fillers are
-harder, so filler accuracy will be measured on real recordings in Step 4.
-
 **Also considered:** sherpa-onnx (prebuilt, supports Whisper and Moonshine).
 It wasn't needed, and it would have added a second copy of onnxruntime.
+
+**Revised in Step 4:** the "um/uh kept" column above turned out to be
+misleading. Text-to-speech says "um" crisply, like a word. On **real** meetings,
+tiny.en without a prompt caught **0 of 65** ums and uhs. A different prompt
+fixed it (see [Filler words](#filler-words) below), and tiny.en stayed the
+choice: with that prompt it caught slightly more fillers than base.en.
+
+## Filler words
+
+`src/core/fillers.ts` finds two kinds of filler in each phrase's transcript:
+
+- **Vocal fillers**, hesitation sounds, always count: um, uh, er, erm, ah, hmm,
+  and spellings like "umm" or "uhm". Agreement sounds ("uh-huh", "mm-hmm") don't.
+- **Lexical fillers** are real words that are only fillers in some positions.
+  The rules use the punctuation Whisper adds, and lean towards _not_ counting:
+
+  | Counted                                              | Not counted                                  |
+  | ---------------------------------------------------- | -------------------------------------------- |
+  | "it's, **like**, simpler" (followed by a comma)      | "I _like_ it", "what's it _like_?"           |
+  | "it's, **you know**, hard" (followed by punctuation) | "_do_ you know the answer?", "_as_ you know" |
+  | "**I mean**, it's fine" (followed by a comma)        | "I _mean_ it", "what I _mean_ is"            |
+  | "it's **kind of** slow"                              | "_what_ kind of car", "_a_ sort of tool"     |
+  | **basically**, **literally** (always)                | —                                            |
+
+The transcript is reduced to counts (`transcript.ts`) the moment it arrives,
+and the text is dropped.
+
+### Keeping Whisper's ums: the prompt
+
+Whisper is trained on cleaned-up transcripts, so out of the box it deletes
+hesitations. On real meetings, tiny.en caught **0 of 65** ums and uhs.
+
+Whisper accepts a **prompt**: text it treats as "what was said just before",
+whose style it tends to continue. The widely shared filler prompt
+("Umm, let me think like, hmm…") only reached 23%, because it teaches the wrong
+spellings. A plain sentence containing "um" and "uh", with **no topic words**
+so it can't bias the content, did far better:
+
+> Um, so, uh, I was thinking that, um, we could, uh, try it.
+
+That's `FILLER_PROMPT` in `src/engine/speechRecognizer.ts`. A prompt that
+mentioned "remote design" scored well too, but was rejected: the benchmark
+meetings are about designing a remote control, so it would have been cheating.
+
+### Safety nets
+
+Prompts can occasionally send Whisper into a loop ("the second part of the
+second part of the second part…"). In one test, that turned 91 spoken words
+into 247 and pace into 377 wpm. Two guards in `transcript.ts` now apply to
+every transcript, whatever the prompt:
+
+- **Loop removal:** a phrase repeated more than twice in a row (or a word more
+  than three times) is kept once. Real repetition like "um, um" or "no no no"
+  stays.
+- **Plausibility check:** a phrase with more than **400 words per minute** is a
+  recognition glitch and is ignored, so it can't distort pace or fillers.
+
+### How accurate is it?
+
+`pnpm eval` runs the real pipeline over clips of real meetings with
+hand-made transcripts (see [eval/README.md](../eval/README.md)). On 8 meetings
+never used for any decision:
+
+|                 | Recall (caught)    | Precision (correct)          |
+| --------------- | ------------------ | ---------------------------- |
+| um, uh…         | **99%** (79 of 80) | **96%**                      |
+| like, you know… | 100% (5 of 5)      | 71% (5 of 7, a small sample) |
+
+Known limits: Whisper sometimes swaps "um" and "uh" (the total stays right),
+and lexical fillers are rare in the benchmark, so their numbers are rough.
 
 ### The `sharp` stand-in
 
@@ -230,3 +289,4 @@ they're read from `models/` in the project folder (`modelsDir()` in
 | Unit                | `pnpm test`                       | `src/core` metrics (talk time, phrases, pace, word counts), the frame buffer and audio history, security rules                                                                                                                                                   |
 | End-to-end          | `pnpm test:e2e`                   | The real app: Playwright clicks Start while Chromium's **fake microphone** plays a speech clip made by the OS's text-to-speech, then checks talk time, pace and the summary                                                                                      |
 | Packaged end-to-end | CI only (`GLOSSA_E2E_PACKAGED=1`) | The same test against the packaged app on Windows and macOS: proves models and native files are bundled correctly. On macOS the test disables only Chromium's _audio_ sandbox, which otherwise can't read the clip file; the app itself never reads audio files. |
+| Benchmark           | `pnpm eval`                       | Accuracy on real meetings (AMI Meeting Corpus): filler recall and precision, word count and word errors, on a tuning set and a held-out set. See [eval/README.md](../eval/README.md).                                                                            |

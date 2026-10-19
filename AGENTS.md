@@ -11,24 +11,25 @@ React. While the user talks, it shows live talk-time, pace (WPM), filler-word
 count, and a monologue alert, then a post-call report card. All speech
 processing runs locally with prebuilt ONNX models.
 
-**Status:** pre-release, being built step by step. Talk time and pace work end
-to end; fillers, monologue alert and report card are next. Some directories
+**Status:** pre-release, being built step by step. Talk time, pace and filler
+words work end to end; the monologue alert and report card are next. Some directories
 below don't exist yet; don't create them unless your task needs them.
 
 **How it works:** read [docs/architecture.md](docs/architecture.md) before changing `src/`.
 
 ## Commands
 
-| Command             | Use                                                                                                                         |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm install`      | Install dependencies. Never use npm or yarn.                                                                                |
-| `pnpm fetch-models` | Download speech models into `models/` (gitignored). Needed before `dev` and `test:e2e`.                                     |
-| `pnpm dev`          | Run the app with live reload.                                                                                               |
-| `pnpm check`        | Format check + lint + typecheck + unit tests. **Must pass before you finish.**                                              |
-| `pnpm format`       | Auto-fix formatting.                                                                                                        |
-| `pnpm test`         | Unit tests (Vitest).                                                                                                        |
-| `pnpm test:e2e`     | Build, then end-to-end tests (Playwright drives Electron; Chromium's fake mic plays OS text-to-speech). Windows/macOS only. |
-| `pnpm build:unpack` | Build a runnable, unpacked app into `release/` (what CI's build job runs).                                                  |
+| Command             | Use                                                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install`      | Install dependencies. Never use npm or yarn.                                                                                                                      |
+| `pnpm fetch-models` | Download speech models into `models/` (gitignored). Needed before `dev` and `test:e2e`.                                                                           |
+| `pnpm dev`          | Run the app with live reload.                                                                                                                                     |
+| `pnpm check`        | Format check + lint + typecheck + unit tests. **Must pass before you finish.**                                                                                    |
+| `pnpm format`       | Auto-fix formatting.                                                                                                                                              |
+| `pnpm test`         | Unit tests (Vitest).                                                                                                                                              |
+| `pnpm test:e2e`     | Build, then end-to-end tests (Playwright drives Electron; Chromium's fake mic plays OS text-to-speech). Windows/macOS only.                                       |
+| `pnpm build:unpack` | Build a runnable, unpacked app into `release/` (what CI's build job runs).                                                                                        |
+| `pnpm eval`         | Filler/word accuracy benchmark on real meetings (downloads ~22 MB). Run it when changing fillers, chunking or the Whisper prompt. Never tune on the held-out set. |
 
 ## Layout
 

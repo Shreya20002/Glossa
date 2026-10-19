@@ -37,6 +37,7 @@ describe('session', () => {
       talkRatio: 0,
       wordsPerMinute: null,
       pace: null,
+      fillers: { total: 0, perMinute: null, top: [] },
     })
   })
 
@@ -72,7 +73,7 @@ describe('session', () => {
   it('shows pace once the chunk is transcribed', () => {
     const speech = feed(createSession(), 250, 0.9) // 8 s of speech
     const pause = feed(speech.state, framesFor(SILENCE_HANGOVER_MS + CHUNK_PAUSE_MS), 0.02)
-    const state = applyTranscription(pause.state, pause.chunks[0]!, 20) // 20 words in 8 s
+    const state = applyTranscription(pause.state, pause.chunks[0]!, { words: 20, fillers: {} }) // 20 words in 8 s
     expect(liveMetrics(state)).toMatchObject({ wordsPerMinute: 150, pace: 'good' })
   })
 
@@ -81,20 +82,23 @@ describe('session', () => {
     ;({ state } = feed(state, 100, 0.9))
     const closed = closeSession(state)
     expect(closed.chunk).toEqual({ startMs: 3_200, endMs: 6_400, speechMs: 3_200 })
-    const summary = summarizeSession(applyTranscription(closed.state, closed.chunk!, 8))
+    const summary = summarizeSession(
+      applyTranscription(closed.state, closed.chunk!, { words: 8, fillers: { um: 1 } }),
+    )
     expect(summary).toEqual({
       durationMs: 6_400,
       speakingMs: 3_200,
       talkRatio: 0.5,
       words: 8,
       wordsPerMinute: null, // 3.2 s is too little speech to judge pace
+      fillers: { total: 1, perMinute: null, top: [{ filler: 'um', count: 1 }] },
     })
   })
 
   it('summarizes average pace over the session', () => {
     const speech = feed(createSession(), 250, 0.9)
     const pause = feed(speech.state, framesFor(SILENCE_HANGOVER_MS + CHUNK_PAUSE_MS), 0.02)
-    const state = applyTranscription(pause.state, pause.chunks[0]!, 30) // 30 words in 8 s
+    const state = applyTranscription(pause.state, pause.chunks[0]!, { words: 30, fillers: {} }) // 30 words in 8 s
     expect(summarizeSession(closeSession(state).state)).toMatchObject({
       words: 30,
       wordsPerMinute: 225,
@@ -110,6 +114,36 @@ describe('session', () => {
       talkRatio: 0,
       words: 0,
       wordsPerMinute: null,
+      fillers: { total: 0, perMinute: null, top: [] },
+    })
+  })
+
+  it('ignores a transcript with more words than anyone could say', () => {
+    const chunk = { startMs: 0, endMs: 10_000, speechMs: 10_000 }
+    const glitch = applyTranscription(createSession(), chunk, { words: 500, fillers: { um: 9 } })
+    expect(glitch).toEqual(createSession())
+  })
+
+  it('adds up fillers across chunks', () => {
+    let state = createSession()
+    const chunk = { startMs: 0, endMs: 20_000, speechMs: 20_000 }
+    state = applyTranscription(state, chunk, { words: 50, fillers: { um: 2, like: 1 } })
+    state = applyTranscription(
+      state,
+      { ...chunk, startMs: 30_000, endMs: 50_000 },
+      {
+        words: 50,
+        fillers: { um: 1, 'you know': 2 },
+      },
+    )
+    expect(liveMetrics(state).fillers).toEqual({
+      total: 6,
+      perMinute: 9, // 6 fillers in 40 s of speech
+      top: [
+        { filler: 'um', count: 3 },
+        { filler: 'you know', count: 2 },
+        { filler: 'like', count: 1 },
+      ],
     })
   })
 })

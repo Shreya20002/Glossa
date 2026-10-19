@@ -1,5 +1,9 @@
-import { averageWordsPerMinute, paceBand, recentWordsPerMinute } from './pace'
+import { addFillerCounts, summarizeFillers } from './fillers'
+import type { FillerCounts, FillerSummary } from './fillers'
+import { averageWordsPerMinute, paceBand, recentWordsPerMinute, speechSpanMs } from './pace'
 import type { PaceBand, TranscribedChunk } from './pace'
+import { isPlausibleTranscript } from './transcript'
+import type { TranscriptCounts } from './transcript'
 import { flushChunker, initialChunker, stepChunker } from './speechChunks'
 import type { ChunkerState, SpeechChunk } from './speechChunks'
 import { applyVoiceActivityEvent, initialTalkTime, speakingMsAt, talkRatio } from './talkTime'
@@ -22,6 +26,8 @@ export interface SessionState {
   talkTime: TalkTimeState
   chunker: ChunkerState
   transcribed: readonly TranscribedChunk[]
+  /** Every filler heard so far. */
+  fillers: FillerCounts
 }
 
 /** What the overlay shows, updated several times a second. */
@@ -34,6 +40,8 @@ export interface LiveMetrics {
   /** Pace over the last minute of speech, or null until there's enough. */
   wordsPerMinute: number | null
   pace: PaceBand | null
+  /** Fillers so far: total, rate and the most frequent ones. */
+  fillers: FillerSummary
 }
 
 /** The final numbers once a session has ended. Becomes the report card in a later step. */
@@ -45,6 +53,7 @@ export interface SessionSummary {
   words: number
   /** Average pace, or null if there wasn't enough speech. */
   wordsPerMinute: number | null
+  fillers: FillerSummary
 }
 
 export function createSession(): SessionState {
@@ -54,6 +63,7 @@ export function createSession(): SessionState {
     talkTime: initialTalkTime,
     chunker: initialChunker,
     transcribed: [],
+    fillers: {},
   }
 }
 
@@ -83,15 +93,24 @@ export function processFrame(
   }
 }
 
-/** Records how many words the recognizer heard in a chunk. */
+/**
+ * Records what the recognizer heard in a chunk: its word and filler counts.
+ * A transcript with more words than anyone could say in the chunk is a
+ * recognition glitch, and is ignored rather than distorting pace and fillers.
+ */
 export function applyTranscription(
   state: SessionState,
   chunk: SpeechChunk,
-  words: number,
+  counts: TranscriptCounts,
 ): SessionState {
+  if (!isPlausibleTranscript(counts, chunk.endMs - chunk.startMs)) return state
   return {
     ...state,
-    transcribed: [...state.transcribed, { startMs: chunk.startMs, endMs: chunk.endMs, words }],
+    transcribed: [
+      ...state.transcribed,
+      { startMs: chunk.startMs, endMs: chunk.endMs, words: counts.words },
+    ],
+    fillers: addFillerCounts(state.fillers, counts.fillers),
   }
 }
 
@@ -105,6 +124,7 @@ export function liveMetrics(state: SessionState): LiveMetrics {
     talkRatio: talkRatio(speakingMs, state.elapsedMs),
     wordsPerMinute,
     pace: wordsPerMinute === null ? null : paceBand(wordsPerMinute),
+    fillers: summarizeFillers(state.fillers, speechSpanMs(state.transcribed)),
   }
 }
 
@@ -139,5 +159,6 @@ export function summarizeSession(state: SessionState): SessionSummary {
     talkRatio: talkRatio(speakingMs, state.elapsedMs),
     words: state.transcribed.reduce((total, chunk) => total + chunk.words, 0),
     wordsPerMinute: averageWordsPerMinute(state.transcribed),
+    fillers: summarizeFillers(state.fillers, speechSpanMs(state.transcribed)),
   }
 }

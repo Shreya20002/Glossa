@@ -6,7 +6,7 @@ import type { WebPreferences } from 'electron'
 type RendererPage = 'app' | 'overlay'
 
 /** Overlay size in pixels. The pill inside is smaller, leaving room for its shadow. */
-const OVERLAY_WIDTH = 380
+const OVERLAY_WIDTH = 460
 const OVERLAY_HEIGHT = 72
 
 /** Gap between the overlay and the screen edge. */

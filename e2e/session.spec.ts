@@ -51,11 +51,17 @@ test('a session measures talk time from the microphone', async () => {
     expect(wordsPerMinute).toBeGreaterThanOrEqual(100)
     expect(wordsPerMinute).toBeLessThanOrEqual(260)
 
+    // The first sentence contains an "um", so at least one filler is counted.
+    const fillers = overlay.getByTestId('fillers')
+    await expect(fillers, 'the "um" should be counted').not.toHaveText('0')
+    console.log(`Fillers: ${await fillers.innerText()}`)
+
     // Stopping closes the overlay and shows a summary in the main window.
     await main.getByRole('button', { name: 'Stop session' }).click()
     const summary = main.getByTestId('last-session')
     await expect(summary).toContainText('You spoke for')
     await expect(summary).toContainText('words per minute')
+    await expect(summary).toContainText('um ×')
     await expect.poll(() => app.windows().length).toBe(1)
 
     if (process.env['GLOSSA_E2E_DIAGNOSTICS']) await printDiagnostics(app, [clipInfo])
