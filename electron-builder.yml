@@ -17,13 +17,17 @@ directories:
 # (Packages listed under "dependencies" in package.json are added automatically.)
 files:
   - out/**
+  # transformers.js has the bits of onnxruntime-web it needs built in, and in
+  # Glossa it runs on onnxruntime-node; the separate package is never loaded.
+  - '!**/node_modules/onnxruntime-web/**'
 
 # The AI models (downloaded by `pnpm fetch-models`) ship next to the app, in
 # its "resources" folder, so Glossa works offline from the first launch.
+# Whisper is a folder of .json settings and .onnx weights.
 extraResources:
   - from: models
     to: models
-    filter: ['*.onnx']
+    filter: ['**/*.onnx', '**/*.json']
 
 # Pack app files into a single archive (app.asar). Faster startup and tidier.
 asar: true

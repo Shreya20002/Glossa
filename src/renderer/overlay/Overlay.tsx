@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { formatDuration, formatPercent } from '../../core/format'
+import type { PaceBand } from '../../core/pace'
 import type { LiveMetrics } from '../../core/session'
+
+const PACE_HINT: Record<PaceBand, string> = {
+  slow: 'A little slow',
+  good: 'Good pace',
+  fast: 'A little fast: slow down',
+}
 
 /** The floating pill shown during a session. Drag it anywhere; ■ ends the session. */
 export function Overlay() {
@@ -9,6 +16,7 @@ export function Overlay() {
   useEffect(() => window.glossa.onMetrics(setMetrics), [])
 
   const speaking = metrics?.isSpeaking ?? false
+  const pace = metrics?.pace ?? null
 
   return (
     <div className="pill">
@@ -24,6 +32,16 @@ export function Overlay() {
           {formatPercent(metrics?.talkRatio ?? 0)}
         </span>
         <span className="label">talk</span>
+      </div>
+      <div
+        className="stat"
+        data-pace={pace ?? 'none'}
+        title={pace ? PACE_HINT[pace] : 'Pace appears after a few sentences'}
+      >
+        <span className="value" data-testid="pace">
+          {metrics?.wordsPerMinute ?? '—'}
+        </span>
+        <span className="label">wpm</span>
       </div>
       <div className="stat">
         <span className="value" data-testid="elapsed">

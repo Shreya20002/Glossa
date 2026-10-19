@@ -55,12 +55,17 @@
     "vitest": "^5.0.5"
   },
   "pnpm": {
+    "overrides": {
+      "sharp": "file:./stubs/sharp"
+    },
     "ignoredBuiltDependencies": [
       "electron-winstaller",
-      "onnxruntime-node"
+      "onnxruntime-node",
+      "protobufjs"
     ]
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.3.1",
     "onnxruntime-node": "^1.30.0"
   }
 }

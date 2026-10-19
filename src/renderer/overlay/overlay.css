@@ -5,6 +5,8 @@
   --pill-muted: #a3a6ad;
   --pill-border: rgba(255, 255, 255, 0.08);
   --speaking: #4cd68f;
+  --pace-slow: #f5c26b;
+  --pace-fast: #ff8a65;
 
   font-family:
     system-ui,
@@ -36,7 +38,7 @@ body {
 
 .pill {
   display: flex;
-  gap: 18px;
+  gap: 16px;
   align-items: center;
   height: 48px;
   padding: 0 8px 0 18px;
@@ -77,6 +79,14 @@ body {
   font-size: 1.15rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
+}
+
+.stat[data-pace='slow'] .value {
+  color: var(--pace-slow);
+}
+
+.stat[data-pace='fast'] .value {
+  color: var(--pace-fast);
 }
 
 .label {
