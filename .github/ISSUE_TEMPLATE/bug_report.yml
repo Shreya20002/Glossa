@@ -62,7 +62,6 @@ body:
         - Windows 11
         - Windows 10
         - macOS (Apple Silicon)
-        - macOS (Intel)
         - Linux (development build)
     validations:
       required: true

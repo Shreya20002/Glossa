@@ -120,7 +120,7 @@ accident:
 These rules were tested by adding a file that breaks all of them: ESLint
 reported all 9 violations, each message naming the rule in `AGENTS.md`.
 
-### Job `build`: the real app on Windows and macOS
+### Job `build`: build and run the real app on Windows and macOS
 
 ```yaml
 strategy:
@@ -134,11 +134,31 @@ A **matrix** runs the same job once per value, in parallel, so you get
 **Build (windows-latest)** and **Build (macos-latest)**. `fail-fast: false`
 lets both finish even if one fails, so you see every problem at once.
 
-The job runs `pnpm build:unpack`: compile with electron-vite, then package with
-electron-builder into a runnable app folder (no installer). This catches
-build-config mistakes and OS-specific bugs that unit tests can't.
-`CSC_IDENTITY_AUTO_DISCOVERY: false` tells electron-builder not to look for
-code-signing certificates. We don't have any yet (see chapter 05, Step 7).
+Each run of the job does five things:
+
+1. **Restore the AI models from the cache** (`actions/cache`). The cache `key`
+   is a fingerprint of `scripts/fetch-models.mjs`, so the cache is reused until
+   someone changes which models are pinned. Then it starts fresh.
+2. **`pnpm fetch-models`** downloads anything the cache didn't have and
+   re-checks every file's SHA-256 fingerprint either way. A cached file can't
+   be swapped for a different one.
+3. **`pnpm build:unpack`**: compile with electron-vite, then package with
+   electron-builder into a runnable app folder (no installer), with the models
+   inside. `CSC_IDENTITY_AUTO_DISCOVERY: false` tells electron-builder not to
+   look for code-signing certificates; we don't have any yet (Step 7).
+4. **End-to-end test on the packaged app** (`GLOSSA_E2E_PACKAGED=1`).
+   Playwright launches the app _exactly as users would install it_, with
+   Chromium's fake microphone playing a clip made by the OS's text-to-speech,
+   then clicks Start, watches the overlay, clicks Stop and checks the summary.
+   This proves the models and native onnxruntime files are bundled correctly on
+   **both** platforms.
+5. **On failure only** (`if: failure()`), upload the test report and
+   screenshots as an **artifact**: a downloadable zip at the bottom of the
+   run's summary page, kept for 7 days.
+
+The job is still called `Build (…)` even though it does more now, because
+your ruleset requires checks **by name**. Renaming it would leave the ruleset
+waiting forever for a check that never reports.
 
 ## `pr-title.yml`: Conventional Commit titles
 
@@ -226,14 +246,15 @@ Dependabot updates both kinds, including the version comment.
 2. Expand the step with the ❌ and read from the **first** error message.
 3. Fix it locally, then commit and push. CI re-runs by itself.
 
-| Failure                      | Usual fix                                                                       |
-| ---------------------------- | ------------------------------------------------------------------------------- |
-| Format check                 | `pnpm format`, commit the result                                                |
-| `ERR_PNPM_OUTDATED_LOCKFILE` | `pnpm install`, commit `pnpm-lock.yaml`                                         |
-| Lint / type-check            | Read the file:line in the log and fix the code                                  |
-| Unit tests                   | The log shows _expected_ vs _received_. Was the code or the test wrong?         |
-| PR title                     | Edit the title on GitHub                                                        |
-| Flaky (passes on retry)      | **Re-run failed jobs** button, top right. If it keeps happening, open an issue. |
+| Failure                      | Usual fix                                                                                                                                                                    |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Format check                 | `pnpm format`, commit the result                                                                                                                                             |
+| `ERR_PNPM_OUTDATED_LOCKFILE` | `pnpm install`, commit `pnpm-lock.yaml`                                                                                                                                      |
+| Lint / type-check            | Read the file:line in the log and fix the code                                                                                                                               |
+| Unit tests                   | The log shows _expected_ vs _received_. Was the code or the test wrong?                                                                                                      |
+| PR title                     | Edit the title on GitHub                                                                                                                                                     |
+| Flaky (passes on retry)      | **Re-run failed jobs** button, top right. If it keeps happening, open an issue.                                                                                              |
+| End-to-end test              | Download the `e2e-report-…` artifact from the bottom of the run's summary page and open `playwright-report/index.html`. The log also prints the talk time the test measured. |
 
 ## Making CI required
 

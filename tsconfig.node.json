@@ -1,6 +1,6 @@
 {
-  // Code that runs in Node.js: the Electron main process, preload scripts,
-  // and build/test config files.
+  // Code that runs in Node.js: the Electron main process, the engine, preload
+  // scripts, end-to-end tests, and build/test config files.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2023"],
@@ -10,9 +10,12 @@
   "include": [
     "electron.vite.config.ts",
     "vitest.config.mts",
+    "playwright.config.ts",
     "src/main/**/*",
     "src/preload/**/*",
+    "src/engine/**/*",
     "src/shared/**/*",
-    "src/core/**/*"
+    "src/core/**/*",
+    "e2e/**/*"
   ]
 }

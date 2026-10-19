@@ -2,3 +2,10 @@ Glossa
 Copyright 2026 The Glossa Authors
 
 This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes the following third-party components:
+
+- Silero VAD (voice activity detection model), Copyright (c) 2020-present
+  Silero Team, MIT License. https://github.com/snakers4/silero-vad
+- ONNX Runtime, Copyright (c) Microsoft Corporation, MIT License.
+  https://github.com/microsoft/onnxruntime

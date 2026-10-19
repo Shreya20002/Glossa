@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isAllowedRequestUrl, isAppPageUrl } from './security'
+import { isAllowedRequestUrl, isAppPageUrl, isMicrophoneRequest } from './security'
 
 const DEV_SERVER = 'http://localhost:5173'
 
@@ -45,5 +45,38 @@ describe('isAppPageUrl', () => {
     expect(isAppPageUrl('blob:file:///1234', DEV_SERVER)).toBe(false)
     expect(isAppPageUrl('https://example.com', DEV_SERVER)).toBe(false)
     expect(isAppPageUrl('http://localhost:5173/app/index.html', undefined)).toBe(false)
+  })
+})
+
+describe('isMicrophoneRequest', () => {
+  const APP_PAGE = 'file:///C:/glossa/out/renderer/app/index.html'
+
+  it('allows microphone access for Glossa pages', () => {
+    expect(isMicrophoneRequest('media', ['audio'], APP_PAGE, undefined)).toBe(true)
+    expect(
+      isMicrophoneRequest('media', ['audio'], `${DEV_SERVER}/app/index.html`, DEV_SERVER),
+    ).toBe(true)
+  })
+
+  it('never allows the camera, even together with the microphone', () => {
+    expect(isMicrophoneRequest('media', ['video'], APP_PAGE, undefined)).toBe(false)
+    expect(isMicrophoneRequest('media', ['audio', 'video'], APP_PAGE, undefined)).toBe(false)
+    expect(isMicrophoneRequest('media', [], APP_PAGE, undefined)).toBe(false)
+  })
+
+  it('denies other permissions', () => {
+    for (const permission of [
+      'geolocation',
+      'notifications',
+      'clipboard-read',
+      'display-capture',
+    ]) {
+      expect(isMicrophoneRequest(permission, ['audio'], APP_PAGE, undefined)).toBe(false)
+    }
+  })
+
+  it('denies pages that are not Glossa', () => {
+    expect(isMicrophoneRequest('media', ['audio'], 'https://example.com', DEV_SERVER)).toBe(false)
+    expect(isMicrophoneRequest('media', ['audio'], 'data:text/html,hi', DEV_SERVER)).toBe(false)
   })
 })

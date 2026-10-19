@@ -1,6 +1,8 @@
 import { app, BrowserWindow, session } from 'electron'
+import { EngineHost } from './engine'
 import { registerIpcHandlers } from './ipc'
 import { blockNetworkRequests, hardenWebContents, restrictPermissions } from './security'
+import { SessionController } from './session'
 import { createAppWindow } from './windows'
 
 // Entry point of the Electron main process: the "back end" that creates
@@ -16,6 +18,14 @@ app.enableSandbox()
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
+  const engine = new EngineHost()
+  const sessions = new SessionController(engine, devServerUrl)
+
+  /** Opens the main window. Closing it ends any running session. */
+  const openAppWindow = (): void => {
+    createAppWindow(devServerUrl).on('closed', () => void sessions.stop())
+  }
+
   app.on('second-instance', () => {
     const [window] = BrowserWindow.getAllWindows()
     if (!window) return
@@ -27,13 +37,13 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(() => {
     blockNetworkRequests(session.defaultSession, devServerUrl)
-    restrictPermissions(session.defaultSession)
-    registerIpcHandlers(devServerUrl)
-    createAppWindow(devServerUrl)
+    restrictPermissions(session.defaultSession, devServerUrl)
+    registerIpcHandlers(sessions, devServerUrl)
+    openAppWindow()
 
     // macOS: clicking the dock icon with no windows open should open one.
     app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createAppWindow(devServerUrl)
+      if (BrowserWindow.getAllWindows().length === 0) openAppWindow()
     })
   })
 
@@ -41,4 +51,6 @@ if (!app.requestSingleInstanceLock()) {
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
   })
+
+  app.on('will-quit', () => engine.dispose())
 }

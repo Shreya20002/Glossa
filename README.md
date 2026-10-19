@@ -44,8 +44,8 @@ That's it — on purpose. New features get added when users ask for them
 
 ## Install
 
-Not released yet. When v0.1.0 ships, installers for **Windows** and **macOS**
-will be on the [Releases page](https://github.com/Shreya20002/glossa/releases).
+Not released yet. When v0.1.0 ships, installers for **Windows 10/11** and
+**macOS on Apple Silicon** (M1 or newer) will be on the [Releases page](https://github.com/Shreya20002/glossa/releases).
 
 > **Heads-up:** early releases are not code-signed, so Windows and macOS will
 > show a warning the first time you open Glossa. Instructions for getting past
@@ -74,6 +74,9 @@ Contributions of all sizes are welcome — bug reports, docs, filler words from
 your dialect, test recordings, and code. Start with
 [CONTRIBUTING.md](CONTRIBUTING.md). Everyone taking part agrees to our
 [Code of Conduct](CODE_OF_CONDUCT.md).
+
+Curious how it works? See [docs/architecture.md](docs/architecture.md) and
+[docs/privacy.md](docs/privacy.md).
 
 Found a security problem? Please report it privately — see [SECURITY.md](SECURITY.md).
 

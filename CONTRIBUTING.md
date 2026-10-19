@@ -7,9 +7,9 @@ This guide explains how to get set up and how changes get from your computer
 into Glossa. If anything here is confusing, that's a bug in this guide — please
 open an issue or ask in [Discussions](https://github.com/Shreya20002/glossa/discussions).
 
-> **Project status:** pre-release. The app is being built step by step.
-> `pnpm fetch-models` and `pnpm test:e2e` arrive with the microphone features;
-> every other command below works today.
+> **Project status:** pre-release. The app is being built step by step; the
+> talk-time meter works today. [docs/architecture.md](docs/architecture.md)
+> explains how the pieces fit together.
 
 ## Ways to contribute
 
@@ -46,8 +46,10 @@ You need:
 | pnpm    | 10                | `npm install -g pnpm@10`. Any 10.x works: pnpm then switches itself to the exact version pinned in `package.json`. |
 
 Glossa uses only prebuilt packages, so you do **not** need a C++ compiler,
-Python, CMake, or Rust. Windows and macOS are both first-class; Linux works for
-development and tests.
+Python, CMake, or Rust. **Windows (x64)** and **macOS on Apple Silicon** are
+both first-class. Linux works for development and unit tests; the end-to-end
+tests need Windows or macOS, because they use the built-in text-to-speech to
+make a test recording.
 
 ```bash
 # 1. Fork the repo on GitHub, then clone YOUR fork
@@ -57,7 +59,7 @@ cd glossa
 # 2. Install dependencies (exactly the versions in pnpm-lock.yaml)
 pnpm install
 
-# 3. Download the speech models (one time, ~100 MB, verified by checksum)
+# 3. Download the AI models (one time, a few MB, verified by checksum)
 pnpm fetch-models
 
 # 4. Start the app in development mode (reloads when you save)
