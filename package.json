@@ -23,7 +23,7 @@
     "build:unpack": "electron-vite build && electron-builder --dir",
     "preview": "electron-vite preview",
     "fetch-models": "node scripts/fetch-models.mjs",
-    "typecheck": "tsc --noEmit --composite false -p tsconfig.node.json && tsc --noEmit --composite false -p tsconfig.web.json",
+    "typecheck": "tsc --noEmit --composite false -p tsconfig.node.json && tsc --noEmit --composite false -p tsconfig.web.json && tsc --noEmit --composite false -p tsconfig.e2e.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

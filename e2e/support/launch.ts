@@ -21,15 +21,28 @@ function packagedExecutable(): string | undefined {
 
 /** Launches Glossa with a fake microphone that plays `clipPath` on a loop. */
 export async function launchWithFakeMicrophone(clipPath: string): Promise<ElectronApplication> {
-  // Chromium switches that replace the real microphone with an audio file.
-  const fakeMicrophone = [
+  const args = [
+    // Chromium switches that replace the real microphone with an audio file.
     '--use-fake-device-for-media-stream',
     `--use-file-for-fake-audio-capture=${clipPath}`,
+    // Send Chromium's internal warnings (e.g. from its audio system) to stderr,
+    // so a failing test can print them.
+    '--enable-logging=stderr',
   ]
   const executablePath = packagedExecutable()
   const app = await electron.launch(
-    executablePath ? { executablePath, args: fakeMicrophone } : { args: ['.', ...fakeMicrophone] },
+    executablePath ? { executablePath, args } : { args: ['.', ...args] },
   )
+
+  const output: string[] = []
+  const collect = (chunk: Buffer): void => {
+    output.push(...chunk.toString().split('\n').filter(Boolean))
+    if (output.length > MAX_OUTPUT_LINES) output.splice(0, output.length - MAX_OUTPUT_LINES)
+  }
+  app.process().stdout?.on('data', collect)
+  app.process().stderr?.on('data', collect)
+  processOutput.set(app, output)
+
   // Surface errors from any window in the test output, to make failures easy to debug.
   app.on('window', (page) => {
     page.on('console', (message) => {
@@ -37,4 +50,13 @@ export async function launchWithFakeMicrophone(clipPath: string): Promise<Electr
     })
   })
   return app
+}
+
+/** Lines of the app's own output kept for diagnostics (the most recent ones). */
+const MAX_OUTPUT_LINES = 60
+const processOutput = new WeakMap<ElectronApplication, string[]>()
+
+/** The app process's recent stdout/stderr, including Chromium's internal log. */
+export function recentProcessOutput(app: ElectronApplication): string[] {
+  return processOutput.get(app) ?? []
 }

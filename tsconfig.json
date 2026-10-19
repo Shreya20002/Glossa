@@ -1,10 +1,15 @@
 {
-  // Root config for editors. Glossa's code runs in two different worlds, each
-  // with its own config:
+  // Root config for editors. Glossa's code runs in different worlds, each with
+  // its own config:
   //   tsconfig.node.json -> main process + preload (Node.js + Electron APIs)
   //   tsconfig.web.json  -> renderer windows (browser DOM APIs + React)
+  //   tsconfig.e2e.json  -> end-to-end tests (Node + DOM, for page.evaluate)
   // src/core and src/shared are checked by BOTH, so they can't use APIs from
   // either world. That keeps the metrics logic pure.
   "files": [],
-  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }]
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.web.json" },
+    { "path": "./tsconfig.e2e.json" }
+  ]
 }

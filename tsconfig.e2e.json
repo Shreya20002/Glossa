@@ -1,0 +1,12 @@
+{
+  // End-to-end tests run in Node.js but also send code into Glossa's windows
+  // (page.evaluate), so they need both Node and browser (DOM) types. They get
+  // their own config so DOM types never leak into the main-process code.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.e2e.tsbuildinfo"
+  },
+  "include": ["playwright.config.ts", "e2e/**/*"]
+}
