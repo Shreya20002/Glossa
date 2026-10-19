@@ -52,8 +52,8 @@ by sending messages.
    this frame to be speech?". That takes about 0.3 ms per frame.
 5. **Metrics**: each probability goes into `src/core/session.ts`, which turns
    probabilities into speech start/end events (`voiceActivity.ts`), keeps the
-   talk-time totals (`talkTime.ts`), and groups speech into phrases
-   (`speechChunks.ts`).
+   talk-time totals (`talkTime.ts`), follows turns for the monologue alert
+   (`monologue.ts`), and groups speech into phrases (`speechChunks.ts`).
 6. **Transcription**: when a phrase ends, its audio is cut out of the history
    and handed to **Whisper** (`speechRecognizer.ts`), which runs in the
    background without holding up speech detection. The text is reduced to
@@ -232,6 +232,29 @@ library at startup and refuses to start without it. Glossa never touches
 images, so `package.json` swaps in a tiny stand-in (`stubs/sharp/`, explained
 in its README) instead of shipping about 20 MB of native image code.
 
+## Monologue alert
+
+`src/core/monologue.ts` follows **turns**: stretches of talking where every
+pause is short. A breath or a "so…" doesn't hand over the floor, but two seconds
+of silence gives someone else room to come in, and ends the turn.
+
+| Rule                                   | Value | Why                                                                       |
+| -------------------------------------- | ----- | ------------------------------------------------------------------------- |
+| A pause this long ends a turn          | 2 s   | Pauses inside a turn are usually under a second; 2 s is room to reply     |
+| A turn longer than this is a monologue | 60 s  | A common coaching rule of thumb: after about a minute, listeners tune out |
+
+While the current turn is over a minute, the overlay **pulses**: a soft ring
+grows and fades around the pill until you pause, and the app window says how
+long you've been talking. There's **no sound**, because the microphone would
+hear it. If your system is set to reduce motion, the ring stays still instead.
+
+The summary shows your **longest turn**, and how many went over a minute. A turn
+includes its short pauses, so the longest turn can be longer than your total
+speaking time.
+
+Glossa hears only you, so it can't tell whether anyone actually spoke during a
+pause: any 2-second pause counts as giving them the chance.
+
 ## The session lifecycle
 
 `src/main/session.ts` runs one session at a time:
@@ -286,7 +309,7 @@ they're read from `models/` in the project folder (`modelsDir()` in
 
 | Test                | Command                           | Covers                                                                                                                                                                                                                                                           |
 | ------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit                | `pnpm test`                       | `src/core` metrics (talk time, phrases, pace, word counts), the frame buffer and audio history, security rules                                                                                                                                                   |
-| End-to-end          | `pnpm test:e2e`                   | The real app: Playwright clicks Start while Chromium's **fake microphone** plays a speech clip made by the OS's text-to-speech, then checks talk time, pace and the summary                                                                                      |
+| Unit                | `pnpm test`                       | `src/core` metrics (talk time, phrases, pace, word and filler counts, turns), the frame buffer and audio history, security rules                                                                                                                                 |
+| End-to-end          | `pnpm test:e2e`                   | The real app: Playwright clicks Start while Chromium's **fake microphone** plays a speech clip made by the OS's text-to-speech, then checks talk time, pace, fillers, that short sentences raise no monologue alert, and the summary                             |
 | Packaged end-to-end | CI only (`GLOSSA_E2E_PACKAGED=1`) | The same test against the packaged app on Windows and macOS: proves models and native files are bundled correctly. On macOS the test disables only Chromium's _audio_ sandbox, which otherwise can't read the clip file; the app itself never reads audio files. |
 | Benchmark           | `pnpm eval`                       | Accuracy on real meetings (AMI Meeting Corpus): filler recall and precision, word count and word errors, on a tuning set and a held-out set. See [eval/README.md](../eval/README.md).                                                                            |

@@ -7,6 +7,7 @@ import {
   processFrame,
   summarizeSession,
 } from './session'
+import { TURN_PAUSE_MS } from './monologue'
 import type { SessionState } from './session'
 import type { SpeechChunk } from './speechChunks'
 import { CHUNK_PAUSE_MS } from './speechChunks'
@@ -38,6 +39,8 @@ describe('session', () => {
       wordsPerMinute: null,
       pace: null,
       fillers: { total: 0, perMinute: null, top: [] },
+      currentTurnMs: 0,
+      isMonologue: false,
     })
   })
 
@@ -92,6 +95,8 @@ describe('session', () => {
       words: 8,
       wordsPerMinute: null, // 3.2 s is too little speech to judge pace
       fillers: { total: 1, perMinute: null, top: [{ filler: 'um', count: 1 }] },
+      longestTurnMs: 3_200,
+      monologues: 0,
     })
   })
 
@@ -115,6 +120,26 @@ describe('session', () => {
       words: 0,
       wordsPerMinute: null,
       fillers: { total: 0, perMinute: null, top: [] },
+      longestTurnMs: 0,
+      monologues: 0,
+    })
+  })
+
+  it('flags a monologue after a minute without a real pause, until you pause', () => {
+    // Fourteen 4 s sentences with short breaths between them: one long turn.
+    let state = createSession()
+    for (let sentence = 0; sentence < 14; sentence++) {
+      if (sentence > 0) state = feed(state, framesFor(640), 0.02).state
+      state = feed(state, framesFor(4_000), 0.9).state
+    }
+    expect(liveMetrics(state)).toMatchObject({ currentTurnMs: 64_320, isMonologue: true })
+
+    // A two-second pause gives someone else room to speak: the turn is over.
+    state = feed(state, framesFor(SILENCE_HANGOVER_MS + TURN_PAUSE_MS), 0.02).state
+    expect(liveMetrics(state)).toMatchObject({ currentTurnMs: 0, isMonologue: false })
+    expect(summarizeSession(closeSession(state).state)).toMatchObject({
+      longestTurnMs: 64_320,
+      monologues: 1,
     })
   })
 

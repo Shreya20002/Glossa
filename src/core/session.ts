@@ -1,5 +1,13 @@
 import { addFillerCounts, summarizeFillers } from './fillers'
 import type { FillerCounts, FillerSummary } from './fillers'
+import {
+  currentTurnMs,
+  flushMonologue,
+  initialMonologue,
+  isMonologue,
+  stepMonologue,
+} from './monologue'
+import type { MonologueState } from './monologue'
 import { averageWordsPerMinute, paceBand, recentWordsPerMinute, speechSpanMs } from './pace'
 import type { PaceBand, TranscribedChunk } from './pace'
 import { isPlausibleTranscript } from './transcript'
@@ -28,6 +36,8 @@ export interface SessionState {
   transcribed: readonly TranscribedChunk[]
   /** Every filler heard so far. */
   fillers: FillerCounts
+  /** Turns so far: stretches of talking with only short pauses. */
+  monologue: MonologueState
 }
 
 /** What the overlay shows, updated several times a second. */
@@ -42,6 +52,10 @@ export interface LiveMetrics {
   pace: PaceBand | null
   /** Fillers so far: total, rate and the most frequent ones. */
   fillers: FillerSummary
+  /** How long you've been talking without a pause long enough for anyone to come in. */
+  currentTurnMs: number
+  /** True once that stretch passes a minute: the overlay pulses until you pause. */
+  isMonologue: boolean
 }
 
 /** The final numbers once a session has ended. Becomes the report card in a later step. */
@@ -54,6 +68,10 @@ export interface SessionSummary {
   /** Average pace, or null if there wasn't enough speech. */
   wordsPerMinute: number | null
   fillers: FillerSummary
+  /** The longest stretch of talking without a real pause. */
+  longestTurnMs: number
+  /** How many of those stretches went over a minute. */
+  monologues: number
 }
 
 export function createSession(): SessionState {
@@ -64,6 +82,7 @@ export function createSession(): SessionState {
     chunker: initialChunker,
     transcribed: [],
     fillers: {},
+    monologue: initialMonologue,
   }
 }
 
@@ -87,6 +106,7 @@ export function processFrame(
       voiceActivity: step.state,
       talkTime: step.event ? applyVoiceActivityEvent(state.talkTime, step.event) : state.talkTime,
       chunker: chunked.state,
+      monologue: stepMonologue(state.monologue, step.event, frameEndMs),
     },
     event: step.event,
     chunk: chunked.chunk,
@@ -125,12 +145,15 @@ export function liveMetrics(state: SessionState): LiveMetrics {
     wordsPerMinute,
     pace: wordsPerMinute === null ? null : paceBand(wordsPerMinute),
     fillers: summarizeFillers(state.fillers, speechSpanMs(state.transcribed)),
+    currentTurnMs: currentTurnMs(state.monologue, state.elapsedMs),
+    isMonologue: isMonologue(state.monologue, state.elapsedMs),
   }
 }
 
 /**
  * Ends the session's speech detection: closes any speech still in progress
- * (so the last sentence counts) and returns the final chunk to transcribe.
+ * (so the last sentence and the last turn count) and returns the final chunk
+ * to transcribe.
  */
 export function closeSession(state: SessionState): {
   state: SessionState
@@ -139,12 +162,16 @@ export function closeSession(state: SessionState): {
   const flush = flushVoiceActivity(state.voiceActivity, state.elapsedMs)
   const chunker = flush.event ? stepChunker(state.chunker, flush.event, state.elapsedMs) : null
   const chunk = chunker?.chunk ?? flushChunker(chunker?.state ?? state.chunker, state.elapsedMs)
+  const monologue = flush.event
+    ? stepMonologue(state.monologue, flush.event, state.elapsedMs)
+    : state.monologue
   return {
     state: {
       ...state,
       voiceActivity: flush.state,
       talkTime: flush.event ? applyVoiceActivityEvent(state.talkTime, flush.event) : state.talkTime,
       chunker: initialChunker,
+      monologue: flushMonologue(monologue, state.elapsedMs),
     },
     chunk,
   }
@@ -160,5 +187,7 @@ export function summarizeSession(state: SessionState): SessionSummary {
     words: state.transcribed.reduce((total, chunk) => total + chunk.words, 0),
     wordsPerMinute: averageWordsPerMinute(state.transcribed),
     fillers: summarizeFillers(state.fillers, speechSpanMs(state.transcribed)),
+    longestTurnMs: state.monologue.longestTurnMs,
+    monologues: state.monologue.monologues,
   }
 }

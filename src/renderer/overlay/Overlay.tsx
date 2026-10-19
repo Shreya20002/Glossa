@@ -25,9 +25,10 @@ export function Overlay() {
 
   const speaking = metrics?.isSpeaking ?? false
   const pace = metrics?.pace ?? null
+  const monologue = metrics?.isMonologue ?? false
 
   return (
-    <div className="pill">
+    <div className="pill" data-testid="pill" data-monologue={monologue}>
       <span
         className="dot"
         data-testid="speaking-indicator"
@@ -72,6 +73,9 @@ export function Overlay() {
       >
         <span aria-hidden="true" className="stop-icon" />
       </button>
+      <span className="visually-hidden" role="status">
+        {monologue ? "You've been talking for over a minute. Pause to let others come in." : ''}
+      </span>
     </div>
   )
 }
