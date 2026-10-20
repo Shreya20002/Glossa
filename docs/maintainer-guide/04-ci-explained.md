@@ -145,11 +145,14 @@ Each run of the job does six things:
 3. **`pnpm build:unpack`**: compile with electron-vite, then package with
    electron-builder into a runnable app folder (no installer), with the models
    inside. `CSC_IDENTITY_AUTO_DISCOVERY: false` tells electron-builder not to
-   look for code-signing certificates; we don't have any yet (Step 7).
+   look for paid code-signing certificates (Glossa has none; chapter 05 explains
+   why). `CSC_FOR_PULL_REQUEST: true` lets it give the macOS app its free "ad
+   hoc" signature in pull requests too, so CI tests the app exactly as it ships.
 4. **End-to-end test on the packaged app** (`GLOSSA_E2E_PACKAGED=1`).
    Playwright launches the app _exactly as users would install it_, with
    Chromium's fake microphone playing a clip made by the OS's text-to-speech,
-   then clicks Start, watches the overlay, clicks Stop and checks the summary.
+   then clicks Start, watches the overlay, clicks Stop, checks the report card
+   and copies it, then restarts the app to check the card was saved.
    This proves the models and native onnxruntime files are bundled correctly on
    **both** platforms.
 5. **Publish e2e diagnostics** (`if: always()`, so even after a failure).
@@ -206,6 +209,12 @@ would become part of the command and run. This is called **script injection**,
 and it has compromised real projects. Passing the title through an environment
 variable (`$TITLE`) keeps it as plain data. **Rule:** never put
 `${{ github.event.* }}` text inside `run:`; route it through `env:`.
+
+## `release.yml`: releases
+
+The release workflow keeps the release PR up to date and, when you merge it,
+builds and tests the installers and attaches them to the GitHub release. It has
+its own chapter: [05 — Releasing](05-releasing.md).
 
 ## `dependabot.yml`: automatic update PRs
 

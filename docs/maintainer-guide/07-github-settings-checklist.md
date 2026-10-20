@@ -129,11 +129,23 @@ GitHub creates some by default: `bug`, `documentation`, `duplicate`,
 Optional, once there's code: `area: engine`, `area: ui`, `area: ci`. They help
 contributors find issues in the part they know.
 
-## 8. ⏳ Social preview (Step 7)
+## 8. ⏳ Social preview (after v0.1.0)
 
 **Settings → General → Social preview** lets you upload a 1280×640 image. It's
-what shows up when someone shares the repo link on LinkedIn or X. We'll make one
-from the report card screenshot.
+what shows up when someone shares the repo link on LinkedIn or X. A screenshot
+of the report card on a plain background works well. It's uploaded to GitHub,
+not committed to the repo.
+
+## 9. Settings → Actions → General (before your first release)
+
+- **Workflow permissions:** keep **Read repository contents and packages
+  permissions** (each workflow asks for more only where it needs it), and tick
+  ✅ **Allow GitHub Actions to create and approve pull requests**. Click
+  **Save**. release-please needs this to open the release PR
+  ([chapter 05](05-releasing.md)).
+- **Approval for fork pull request workflows:** keep **Require approval for
+  first-time contributors**. [Chapter 06](06-reviewing-and-triage.md) explains
+  the **Approve and run** button this adds to their first PR.
 
 ---
 

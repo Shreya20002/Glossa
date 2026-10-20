@@ -342,10 +342,18 @@ they're read from `models/` in the project folder (`modelsDir()` in
 
 ## Platforms
 
-- **Windows 10/11 (x64)** and **macOS on Apple Silicon**. onnxruntime-node has
-  no build for Intel Macs.
+- **Windows 10/11 (x64)** and **macOS 13+ on Apple Silicon**. onnxruntime-node
+  has no build for Intel Macs, and Electron 44 needs macOS 13 or newer.
 - **Linux** works for development and unit tests, but isn't packaged, and the
   end-to-end test needs Windows or macOS text-to-speech.
+
+**Packaging** (`electron-builder.yml`): the app's archive holds only the
+compiled code in `out/` and the runtime packages. Each installer keeps just its
+own platform's onnxruntime binaries (without GPU libraries Glossa never loads)
+and Chromium's English resources; the Windows installer is about 130 MB. Adding
+a native package? Check what it ships for other platforms and trim it the same
+way. Releases are built by `.github/workflows/release.yml` (see the
+maintainer guide, chapter 05).
 
 ## Testing at each layer
 

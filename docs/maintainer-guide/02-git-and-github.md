@@ -95,8 +95,9 @@ Format: `type: description`, for example `feat: count "you know" as filler`.
 - `docs`, `test`, `refactor`, `build`, `ci`, `chore` → no release on their own
 - `!` after the type (`feat!:`) → breaking change
 
-In Step 7, a tool called **release-please** reads these titles and writes the
-changelog and version number for you. Good titles mean free release notes.
+A tool called **release-please** reads these titles and writes the changelog
+and version number for you ([chapter 05](05-releasing.md)). Good titles mean
+free release notes.
 
 ## Before your first commit: protect your email
 
