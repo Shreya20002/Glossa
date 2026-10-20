@@ -63,7 +63,8 @@ by sending messages.
    phrase is transcribed, the engine sends `LiveMetrics` to the main process,
    which broadcasts them to every window.
 8. **Forget**: audio older than 30 seconds is overwritten, and transcripts are
-   never kept, only their word and filler counts. Nothing is written to disk.
+   never kept, only their word and filler counts. When a session ends, only its
+   final numbers are saved (see [Report card](#report-card-and-history)).
 
 ## Why `src/core` is pure
 
@@ -255,6 +256,46 @@ speaking time.
 Glossa hears only you, so it can't tell whether anyone actually spoke during a
 pause: any 2-second pause counts as giving them the chance.
 
+## Report card and history
+
+When a session ends, the main process saves its final numbers and sends every
+window a **report card**: the session's numbers, how they compare with the
+previous saved session, and a trend of recent ones.
+
+**Saving** (`src/main/history.ts`): each session becomes one line of JSON in
+`sessions.jsonl`, in Glossa's data folder (`%APPDATA%\Glossa` on Windows,
+`~/Library/Application Support/Glossa` on macOS). Lines are only ever appended,
+so a crash can at worst cut the last one short. Reading checks every field of
+every line (`src/core/sessionRecord.ts`) and skips anything damaged or edited
+into nonsense. Sessions with less than **5 seconds** of speech aren't saved, so a
+quick microphone check never becomes "last time". What's in a line is listed in
+[privacy.md](privacy.md): numbers only, never audio or words.
+
+**Comparing** (`src/core/report.ts`): each number is compared at the precision
+it's shown (whole percentages, whole seconds), and only called better or worse
+where there's a right direction:
+
+| Number       | Better when…                                                       |
+| ------------ | ------------------------------------------------------------------ |
+| Talk time    | Never judged: presenting and listening both have their place       |
+| Pace         | It moves towards the comfortable range (110–170 wpm)               |
+| Filler words | There are fewer per minute (needs 30 s of speech for a rate)       |
+| Longest turn | Less of it is over a minute; shorter turns under a minute are fine |
+
+Each change shows an arrow and, when it's judged, the word "better" or "worse"
+as well as a colour, so it never relies on colour alone.
+
+**Trend**: a sparkline of fillers per minute over the last 10 saved sessions,
+starting from zero so the line heads down as fillers fade.
+
+**Copy as image**: the page sends the card's position, and the main process
+captures just that part of the asking window (`webContents.capturePage`) and
+puts it on the clipboard as a PNG. The area is checked and kept inside the
+window (`captureArea.ts`), so a page can only ever copy itself.
+
+At startup, the app window asks for the latest saved report card, so your last
+results are there when you open Glossa.
+
 ## The session lifecycle
 
 `src/main/session.ts` runs one session at a time:
@@ -281,6 +322,7 @@ reports an error. Every window is then told why with a `session:ended` message.
 | Request filter                | `security.ts` → `blockNetworkRequests` | Any request that would leave the computer                                              |
 | Permission handler            | `security.ts` → `isMicrophoneRequest`  | Everything except microphone access for Glossa's own pages (no camera, ever)           |
 | IPC sender check              | `security.ts` → `isTrustedSender`      | Messages from anything that isn't a Glossa page                                        |
+| Copy-as-image limits          | `ipc.ts`, `captureArea.ts`             | A page capturing anything other than part of its own window                            |
 | Sandbox and context isolation | `windows.ts`                           | Page code reaching Node.js or Electron directly                                        |
 | Local-only model loading      | `speechRecognizer.ts`                  | transformers.js downloading anything (`allowRemoteModels = false`, `local_files_only`) |
 | Lint rules                    | `eslint.config.mjs`                    | Network code or impure imports being merged at all                                     |
@@ -307,9 +349,9 @@ they're read from `models/` in the project folder (`modelsDir()` in
 
 ## Testing at each layer
 
-| Test                | Command                           | Covers                                                                                                                                                                                                                                                           |
-| ------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit                | `pnpm test`                       | `src/core` metrics (talk time, phrases, pace, word and filler counts, turns), the frame buffer and audio history, security rules                                                                                                                                 |
-| End-to-end          | `pnpm test:e2e`                   | The real app: Playwright clicks Start while Chromium's **fake microphone** plays a speech clip made by the OS's text-to-speech, then checks talk time, pace, fillers, that short sentences raise no monologue alert, and the summary                             |
-| Packaged end-to-end | CI only (`GLOSSA_E2E_PACKAGED=1`) | The same test against the packaged app on Windows and macOS: proves models and native files are bundled correctly. On macOS the test disables only Chromium's _audio_ sandbox, which otherwise can't read the clip file; the app itself never reads audio files. |
-| Benchmark           | `pnpm eval`                       | Accuracy on real meetings (AMI Meeting Corpus): filler recall and precision, word count and word errors, on a tuning set and a held-out set. See [eval/README.md](../eval/README.md).                                                                            |
+| Test                | Command                           | Covers                                                                                                                                                                                                                                                                                                                                      |
+| ------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit                | `pnpm test`                       | `src/core` metrics (talk time, phrases, pace, word and filler counts, turns, report card comparisons, saved-session checks), the history file, the frame buffer and audio history, security rules                                                                                                                                           |
+| End-to-end          | `pnpm test:e2e`                   | The real app, with a fresh data folder: Playwright clicks Start while Chromium's **fake microphone** plays a speech clip made by the OS's text-to-speech, then checks talk time, pace, fillers, that short sentences raise no monologue alert, the report card and copying it as an image, and that the card is still there after a restart |
+| Packaged end-to-end | CI only (`GLOSSA_E2E_PACKAGED=1`) | The same test against the packaged app on Windows and macOS: proves models and native files are bundled correctly. On macOS the test disables only Chromium's _audio_ sandbox, which otherwise can't read the clip file; the app itself never reads audio files.                                                                            |
+| Benchmark           | `pnpm eval`                       | Accuracy on real meetings (AMI Meeting Corpus): filler recall and precision, word count and word errors, on a tuning set and a held-out set. See [eval/README.md](../eval/README.md).                                                                                                                                                       |

@@ -11,9 +11,10 @@ React. While the user talks, it shows live talk-time, pace (WPM), filler-word
 count, and a monologue alert, then a post-call report card. All speech
 processing runs locally with prebuilt ONNX models.
 
-**Status:** pre-release, being built step by step. Talk time, pace, filler
-words and the monologue alert work end to end; the report card is next. Some
-directories below don't exist yet; don't create them unless your task needs them.
+**Status:** pre-release, being built step by step. All five v1 features work
+end to end (talk time, pace, filler words, the monologue alert and the report
+card); packaging and the first release (v0.1.0) are next. Some directories
+below don't exist yet; don't create them unless your task needs them.
 
 **How it works:** read [docs/architecture.md](docs/architecture.md) before changing `src/`.
 

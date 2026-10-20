@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDuration, formatPercent } from './format'
+import { formatDuration, formatPercent, formatSessionLength } from './format'
 
 describe('formatDuration', () => {
   it('formats minutes and seconds', () => {
@@ -42,5 +42,25 @@ describe('formatPercent', () => {
   it('treats non-finite input as zero', () => {
     expect(formatPercent(Number.NaN)).toBe('0%')
     expect(formatPercent(Number.NEGATIVE_INFINITY)).toBe('0%')
+  })
+})
+
+describe('formatSessionLength', () => {
+  it('uses seconds under a minute', () => {
+    expect(formatSessionLength(0)).toBe('0 sec')
+    expect(formatSessionLength(24_400)).toBe('24 sec')
+    expect(formatSessionLength(59_999)).toBe('59 sec')
+  })
+
+  it('rounds to whole minutes from one minute up', () => {
+    expect(formatSessionLength(60_000)).toBe('1 min')
+    expect(formatSessionLength(89_000)).toBe('1 min')
+    expect(formatSessionLength(90_000)).toBe('2 min')
+    expect(formatSessionLength(32 * 60_000)).toBe('32 min')
+  })
+
+  it('treats negative and non-finite input as zero', () => {
+    expect(formatSessionLength(-1_000)).toBe('0 sec')
+    expect(formatSessionLength(Number.NaN)).toBe('0 sec')
   })
 })

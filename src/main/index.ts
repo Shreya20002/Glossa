@@ -1,5 +1,7 @@
+import { join } from 'node:path'
 import { app, BrowserWindow, session } from 'electron'
 import { EngineHost } from './engine'
+import { HISTORY_FILE_NAME } from './history'
 import { registerIpcHandlers } from './ipc'
 import { blockNetworkRequests, hardenWebContents, restrictPermissions } from './security'
 import { SessionController } from './session'
@@ -19,7 +21,10 @@ if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
   const engine = new EngineHost()
-  const sessions = new SessionController(engine, devServerUrl)
+  // Saved sessions (numbers only) live with the app's other data, e.g.
+  // %APPDATA%\Glossa on Windows or ~/Library/Application Support/Glossa on macOS.
+  const historyFile = join(app.getPath('userData'), HISTORY_FILE_NAME)
+  const sessions = new SessionController(engine, historyFile, devServerUrl)
 
   /** Opens the main window. Closing it ends any running session. */
   const openAppWindow = (): void => {
@@ -38,7 +43,7 @@ if (!app.requestSingleInstanceLock()) {
   void app.whenReady().then(() => {
     blockNetworkRequests(session.defaultSession, devServerUrl)
     restrictPermissions(session.defaultSession, devServerUrl)
-    registerIpcHandlers(sessions, devServerUrl)
+    registerIpcHandlers(sessions, historyFile, devServerUrl)
     openAppWindow()
 
     // macOS: clicking the dock icon with no windows open should open one.

@@ -32,16 +32,36 @@ function macOSFakeMicrophoneArgs(): string[] {
   return ['--disable-features=AudioServiceSandbox,AudioServiceOutOfProcess']
 }
 
-/** Launches Glossa with a fake microphone that plays `clipPath` on a loop. */
-export async function launchWithFakeMicrophone(clipPath: string): Promise<ElectronApplication> {
-  const args = [
-    // Chromium switches that replace the real microphone with an audio file.
+/** Chromium switches that replace the real microphone with an audio file played on a loop. */
+function fakeMicrophoneArgs(clipPath: string): string[] {
+  return [
     '--use-fake-device-for-media-stream',
     `--use-file-for-fake-audio-capture=${clipPath}`,
+    ...macOSFakeMicrophoneArgs(),
+  ]
+}
+
+interface LaunchOptions {
+  /**
+   * Glossa's data folder (session history, microphone choice). Each test
+   * passes a fresh one, so it starts with no history and never touches yours.
+   */
+  userDataDir: string
+  /** An audio file for the fake microphone to play. Without one, there's no microphone. */
+  fakeMicrophoneClip?: string
+}
+
+/** Launches Glossa: the development build, or the packaged app when GLOSSA_E2E_PACKAGED=1. */
+export async function launchGlossa({
+  userDataDir,
+  fakeMicrophoneClip,
+}: LaunchOptions): Promise<ElectronApplication> {
+  const args = [
+    `--user-data-dir=${userDataDir}`,
     // Send Chromium's internal warnings (e.g. from its audio system) to stderr,
     // so a failing test can print them.
     '--enable-logging=stderr',
-    ...macOSFakeMicrophoneArgs(),
+    ...(fakeMicrophoneClip ? fakeMicrophoneArgs(fakeMicrophoneClip) : []),
   ]
   const executablePath = packagedExecutable()
   const app = await electron.launch(
