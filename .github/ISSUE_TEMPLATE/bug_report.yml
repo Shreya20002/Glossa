@@ -49,8 +49,8 @@ body:
     id: version
     attributes:
       label: Glossa version
-      description: Shown in the app's About section, or the installer file name.
-      placeholder: '0.1.0'
+      description: Shown at the bottom of Glossa's main window, and in the installer's file name.
+      placeholder: '1.0.0'
     validations:
       required: true
 

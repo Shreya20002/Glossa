@@ -129,7 +129,7 @@ GitHub creates some by default: `bug`, `documentation`, `duplicate`,
 Optional, once there's code: `area: engine`, `area: ui`, `area: ci`. They help
 contributors find issues in the part they know.
 
-## 8. ⏳ Social preview (after v0.1.0)
+## 8. ⏳ Social preview (after v1.0.0)
 
 **Settings → General → Social preview** lets you upload a 1280×640 image. It's
 what shows up when someone shares the repo link on LinkedIn or X. A screenshot

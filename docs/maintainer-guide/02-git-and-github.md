@@ -90,10 +90,11 @@ the commit message.
 
 Format: `type: description`, for example `feat: count "you know" as filler`.
 
-- `feat` → new feature → bumps the **minor** version (0.1.0 → 0.2.0)
-- `fix` → bug fix → bumps the **patch** version (0.1.0 → 0.1.1)
+- `feat` → new feature → bumps the **minor** version (1.0.0 → 1.1.0)
+- `fix` → bug fix → bumps the **patch** version (1.0.0 → 1.0.1)
 - `docs`, `test`, `refactor`, `build`, `ci`, `chore` → no release on their own
-- `!` after the type (`feat!:`) → breaking change
+- `!` after the type (`feat!:`) → breaking change → bumps the **major**
+  version (1.0.0 → 2.0.0)
 
 A tool called **release-please** reads these titles and writes the changelog
 and version number for you ([chapter 05](05-releasing.md)). Good titles mean

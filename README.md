@@ -10,8 +10,8 @@ sends anything anywhere.
 [![CI](https://github.com/Shreya20002/glossa/actions/workflows/ci.yml/badge.svg)](https://github.com/Shreya20002/glossa/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-> 🌱 **Status: early.** Version 0.1 is the first release: all five features
-> below work, and there will be rough edges. Found one?
+> 🌱 **Status: new.** Version 1.0 is the first release, with all five
+> features below. Found a rough edge?
 > [Open an issue](https://github.com/Shreya20002/glossa/issues/new/choose).
 
 <!-- A short demo GIF goes here. Keep images out of the repo: drag the GIF into

@@ -11,8 +11,9 @@ React. While the user talks, it shows live talk-time, pace (WPM), filler-word
 count, and a monologue alert, then a post-call report card. All speech
 processing runs locally with prebuilt ONNX models.
 
-**Status:** early (0.x). All five v1 features work end to end. Releases are
-automated: release-please picks versions from commit messages, and
+**Status:** v1. All five v1 features work end to end, and 1.0.0 is the first
+release. Releases are automated: release-please picks versions from commit
+messages, and
 `.github/workflows/release.yml` builds the installers. Some directories below
 don't exist yet; don't create them unless your task needs them.
 
@@ -99,6 +100,9 @@ config.
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`,
   `perf:`, `build:`, `ci:`, `chore:`). The PR title must follow it too.
 - One logical change per PR. Fill in the PR template, including how you tested.
+- A change that breaks things for existing users (a removed feature, a higher
+  minimum OS version, saved history that can no longer be read) is breaking:
+  add `!` (`feat!:`), which releases a new major version.
 
 ## Never do these
 

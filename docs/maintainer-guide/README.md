@@ -42,6 +42,6 @@ Glossa is built in eight reviewed steps, each ending in one commit:
 | 4    | **Filler-word counter** + accuracy benchmark                            |
 | 5    | **Monologue alert**                                                     |
 | 6    | **Post-call report card**                                               |
-| 7    | Release pipeline + v0.1.0                                               |
+| 7    | Release pipeline + v1.0.0                                               |
 
 This guide grows with each step: when a new file appears, chapter 03 explains it.

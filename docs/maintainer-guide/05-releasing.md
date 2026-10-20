@@ -23,15 +23,19 @@ Glossa uses [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 release-please picks the next number from the titles of the PRs merged since
 the last release:
 
-| PR titles since the last release   | Below 1.0 (now) | From 1.0 on   |
-| ---------------------------------- | --------------- | ------------- |
-| Only `fix:`                        | 0.1.0 → 0.1.1   | 1.2.0 → 1.2.1 |
-| At least one `feat:`               | 0.1.0 → 0.2.0   | 1.2.0 → 1.3.0 |
-| A breaking change (`feat!:`)       | 0.1.0 → 0.2.0   | 1.2.0 → 2.0.0 |
-| Only `docs:`, `ci:`, `chore:` etc. | no release      | no release    |
+| PR titles since the last release   | Next version  |
+| ---------------------------------- | ------------- |
+| Only `fix:`                        | 1.0.0 → 1.0.1 |
+| At least one `feat:`               | 1.0.0 → 1.1.0 |
+| A breaking change (`feat!:`)       | 1.0.0 → 2.0.0 |
+| Only `docs:`, `ci:`, `chore:` etc. | no release    |
 
-Versions below 1.0 tell people "early, may change". Move to 1.0 when you're
-happy that Glossa is stable (chapter 02 explains the commit types).
+Glossa starts at **1.0.0**, because the five v1 features are done. From here
+on, the first number is a promise to people who already use Glossa. A change
+that breaks something for them, like removing a feature, raising the minimum
+Windows or macOS version, or saving history in a way older sessions can't be
+read back, must be marked as breaking with `!` in the PR title. Then it
+becomes 2.0.0. Chapter 02 explains the commit types.
 
 ## What release-please does
 
@@ -44,7 +48,7 @@ PR**, runs after every push to `main`:
   changes three files: `CHANGELOG.md` (a new entry listing the `feat:` and
   `fix:` titles), `package.json` (the `version`) and
   `.release-please-manifest.json` (where it remembers the current version).
-- When you merge the release PR, it tags that commit (`v0.1.0`) and publishes a
+- When you merge the release PR, it tags that commit (`v1.0.0`) and publishes a
   **GitHub release** with the changelog entry as its notes.
 
 Those three files belong to release-please: never edit the changelog or the
@@ -54,12 +58,11 @@ release notes. You can still edit a published release's notes on GitHub.
 
 Its settings live in `release-please-config.json`:
 
-| Setting                             | What it does                                             |
-| ----------------------------------- | -------------------------------------------------------- |
-| `"release-type": "node"`            | The version lives in `package.json`                      |
-| `"initial-version": "0.1.0"`        | The very first release is 0.1.0                          |
-| `"include-component-in-tag": false` | Tags look like `v0.1.0`, not `glossa-v0.1.0`             |
-| `"bump-minor-pre-major": true`      | Below 1.0, a breaking change bumps 0.1 → 0.2, not to 1.0 |
+| Setting                             | What it does                                 |
+| ----------------------------------- | -------------------------------------------- |
+| `"release-type": "node"`            | The version lives in `package.json`          |
+| `"initial-version": "1.0.0"`        | The very first release is 1.0.0              |
+| `"include-component-in-tag": false` | Tags look like `v1.0.0`, not `glossa-v1.0.0` |
 
 ## Why you close and reopen the release PR
 
@@ -86,7 +89,7 @@ been published, once on Windows and once on macOS, in parallel:
    speech models (checking every checksum). No caches: what people download
    is always built from a clean slate.
 2. `pnpm build:installer`: compile, then package with electron-builder into
-   `Glossa-0.1.0-setup.exe` or `Glossa-0.1.0-arm64.dmg`.
+   `Glossa-1.0.0-setup.exe` or `Glossa-1.0.0-arm64.dmg`.
 3. Run the same end-to-end test as CI, on the app inside that installer.
 4. Attach the installer to the release.
 
@@ -131,25 +134,26 @@ it the way a user would, warnings and all.
   cause if it's real; if it was a fluke, click **Re-run failed jobs**. The
   release already exists, and the installer is attached when the job passes.
 - **A release has a bad bug.** Merge a `fix:` PR, and release-please proposes
-  the next patch version (0.1.0 → 0.1.1). Then add a note at the top of the
+  the next patch version (1.0.0 → 1.0.1). Then add a note at the top of the
   bad release's notes pointing to the fix. Don't delete tags or releases that
   people may have downloaded.
-- **You need a specific version number,** say for 1.0. In a PR, add
-  `"release-as": "1.0.0"` to the package in `release-please-config.json`.
+- **You need a specific version number,** say 2.0.0 for a big redesign. In
+  a PR, add `"release-as": "2.0.0"` to the package in
+  `release-please-config.json`.
   Release, then remove that line in the next PR.
 
-## Your first release: v0.1.0
+## Your first release: v1.0.0
 
 1. **Settings → Actions → General → Workflow permissions:** tick **Allow
    GitHub Actions to create and approve pull requests** and click **Save**
    (chapter 07, step 9). Without it, release-please can't open its PR.
 2. Merge the PR that added this chapter. Within a minute, the **Release**
-   workflow opens `chore(main): release 0.1.0`.
+   workflow opens `chore(main): release 1.0.0`.
 3. Read its changelog: it lists every `feat:` merged so far.
 4. Close the PR, reopen it, wait for the checks, then squash-merge it, keeping
    its title.
 5. Watch **Actions → Release** until both Installer jobs are green.
-6. Open **Releases → v0.1.0**, download your installer, and try it.
+6. Open **Releases → v1.0.0**, download your installer, and try it.
 
 Then tell people! The README's Install section is ready, and chapter 07's
 social preview step makes the link look good when shared.
