@@ -1,3 +1,5 @@
+<img src="build/icon.svg" alt="" width="96" align="right">
+
 # Glossa
 
 **An invisible speech coach just for you.**

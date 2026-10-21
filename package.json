@@ -24,6 +24,7 @@
     "build:installer": "electron-vite build && electron-builder --publish never",
     "preview": "electron-vite preview",
     "fetch-models": "node scripts/fetch-models.mjs",
+    "icon": "electron scripts/render-icon.mjs",
     "typecheck": "tsc --noEmit --composite false -p tsconfig.node.json && tsc --noEmit --composite false -p tsconfig.web.json && tsc --noEmit --composite false -p tsconfig.e2e.json",
     "lint": "eslint .",
     "format": "prettier --write .",
