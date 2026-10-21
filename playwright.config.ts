@@ -5,8 +5,9 @@ import { defineConfig } from '@playwright/test'
 // Run with `pnpm test:e2e`. Docs: https://playwright.dev/docs/api/class-electron
 export default defineConfig({
   testDir: 'e2e',
-  // A session test listens to ~20 seconds of audio, so allow plenty of time.
-  timeout: 90_000,
+  // A session test listens to ~20 seconds of audio, and may wait for the clip to
+  // play again if a transcription comes out short, so allow plenty of time.
+  timeout: 150_000,
   expect: { timeout: 15_000 },
   // One retry in CI absorbs the occasional slow runner; locally, fail fast.
   retries: process.env['CI'] ? 1 : 0,

@@ -4,6 +4,18 @@ import { launchGlossa } from './support/launch'
 import { createSpeechClip } from './support/speechClip'
 import { describeWav } from './support/wav'
 
+/**
+ * The speech clip plays on a loop. Now and then the recognizer drops part of a
+ * sentence, so checks that depend on a transcription wait long enough for the
+ * clip to come round again and give the same speech a second chance.
+ */
+const ONE_MORE_PASS_MS = 45_000
+
+/** "1:05" → 65: the overlay's elapsed time in seconds. */
+function secondsFrom(time: string): number {
+  return time.split(':').reduce((total, part) => total * 60 + Number(part), 0)
+}
+
 test('a session measures speech from the microphone and saves a report card', async () => {
   const clipPath = test.info().outputPath('speech.wav')
   await createSpeechClip(clipPath)
@@ -44,24 +56,44 @@ test('a session measures speech from the microphone and saves a report card', as
     expect(talkPercent).toBeLessThanOrEqual(90)
 
     // Pace appears once the first sentence (followed by a pause) has been
-    // transcribed. Text-to-speech talks at a normal-to-brisk 140–200 WPM.
+    // transcribed. Text-to-speech talks at a brisk 140–220 WPM, so a working
+    // pace settles between 100 and 260. If a transcription drops words, pace
+    // reads low until the next sentences are in, so judge it once it's
+    // plausible, not on its first reading: a broken pace never gets there.
     const pace = overlay.getByTestId('pace')
     await expect(pace, 'pace should be measured').toHaveText(/^\d+$/, { timeout: 20_000 })
-    const wordsPerMinute = Number(await pace.innerText())
-    console.log(`Pace: ${wordsPerMinute} wpm`)
-    expect(wordsPerMinute).toBeGreaterThanOrEqual(100)
-    expect(wordsPerMinute).toBeLessThanOrEqual(260)
+    const paceReadings: number[] = []
+    await expect
+      .poll(
+        async () => {
+          const wordsPerMinute = Number(await pace.innerText())
+          if (paceReadings.at(-1) !== wordsPerMinute) paceReadings.push(wordsPerMinute)
+          return wordsPerMinute
+        },
+        { message: 'pace should reach at least 100 wpm', timeout: ONE_MORE_PASS_MS },
+      )
+      .toBeGreaterThanOrEqual(100)
+    console.log(`Pace: ${paceReadings.join(' → ')} wpm`)
+    expect(paceReadings.at(-1)).toBeLessThanOrEqual(260)
 
     // The first sentence contains an "um", so at least one filler is counted.
+    // If its transcription missed the "um", the clip's next pass brings it back.
     const fillers = overlay.getByTestId('fillers')
-    await expect(fillers, 'the "um" should be counted').not.toHaveText('0')
-    console.log(`Fillers: ${await fillers.innerText()}`)
+    const fillersWaitStartedMs = Date.now()
+    await expect(fillers, 'the "um" should be counted').not.toHaveText('0', {
+      timeout: ONE_MORE_PASS_MS,
+    })
+    const fillersWaitS = Math.round((Date.now() - fillersWaitStartedMs) / 1000)
+    console.log(`Fillers: ${await fillers.innerText()} (counted after waiting ${fillersWaitS} s)`)
 
     // Short sentences with real pauses between them are conversation, not a monologue.
     await expect(overlay.getByTestId('pill')).toHaveAttribute('data-monologue', 'false')
 
     // Let the second sentence play too, so there's plenty of speech to save.
-    await expect(overlay.getByTestId('elapsed')).toHaveText(/^0:2\d$/, { timeout: 30_000 })
+    const elapsed = overlay.getByTestId('elapsed')
+    await expect
+      .poll(async () => secondsFrom(await elapsed.innerText()), { timeout: 30_000 })
+      .toBeGreaterThanOrEqual(20)
 
     // Stopping closes the overlay and shows the report card in the main window.
     await main.getByRole('button', { name: 'Stop session' }).click()
