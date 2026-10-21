@@ -11,26 +11,28 @@ React. While the user talks, it shows live talk-time, pace (WPM), filler-word
 count, and a monologue alert, then a post-call report card. All speech
 processing runs locally with prebuilt ONNX models.
 
-**Status:** pre-release, being built step by step. All five v1 features work
-end to end (talk time, pace, filler words, the monologue alert and the report
-card); packaging and the first release (v0.1.0) are next. Some directories
-below don't exist yet; don't create them unless your task needs them.
+**Status:** v1. All five v1 features work end to end, and 1.0.0 is the first
+release. Releases are automated: release-please picks versions from commit
+messages, and
+`.github/workflows/release.yml` builds the installers. Some directories below
+don't exist yet; don't create them unless your task needs them.
 
 **How it works:** read [docs/architecture.md](docs/architecture.md) before changing `src/`.
 
 ## Commands
 
-| Command             | Use                                                                                                                                                               |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm install`      | Install dependencies. Never use npm or yarn.                                                                                                                      |
-| `pnpm fetch-models` | Download speech models into `models/` (gitignored). Needed before `dev` and `test:e2e`.                                                                           |
-| `pnpm dev`          | Run the app with live reload.                                                                                                                                     |
-| `pnpm check`        | Format check + lint + typecheck + unit tests. **Must pass before you finish.**                                                                                    |
-| `pnpm format`       | Auto-fix formatting.                                                                                                                                              |
-| `pnpm test`         | Unit tests (Vitest).                                                                                                                                              |
-| `pnpm test:e2e`     | Build, then end-to-end tests (Playwright drives Electron; Chromium's fake mic plays OS text-to-speech). Windows/macOS only.                                       |
-| `pnpm build:unpack` | Build a runnable, unpacked app into `release/` (what CI's build job runs).                                                                                        |
-| `pnpm eval`         | Filler/word accuracy benchmark on real meetings (downloads ~22 MB). Run it when changing fillers, chunking or the Whisper prompt. Never tune on the held-out set. |
+| Command                | Use                                                                                                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install`         | Install dependencies. Never use npm or yarn.                                                                                                                      |
+| `pnpm fetch-models`    | Download speech models into `models/` (gitignored). Needed before `dev` and `test:e2e`.                                                                           |
+| `pnpm dev`             | Run the app with live reload.                                                                                                                                     |
+| `pnpm check`           | Format check + lint + typecheck + unit tests. **Must pass before you finish.**                                                                                    |
+| `pnpm format`          | Auto-fix formatting.                                                                                                                                              |
+| `pnpm test`            | Unit tests (Vitest).                                                                                                                                              |
+| `pnpm test:e2e`        | Build, then end-to-end tests (Playwright drives Electron; Chromium's fake mic plays OS text-to-speech). Windows/macOS only.                                       |
+| `pnpm build:unpack`    | Build a runnable, unpacked app into `release/` (what CI's build job runs).                                                                                        |
+| `pnpm build:installer` | Build an installer for your OS (`.exe` or `.dmg`) into `release/`, as the release workflow does.                                                                  |
+| `pnpm eval`            | Filler/word accuracy benchmark on real meetings (downloads ~22 MB). Run it when changing fillers, chunking or the Whisper prompt. Never tune on the held-out set. |
 
 ## Layout
 
@@ -98,6 +100,9 @@ config.
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`,
   `perf:`, `build:`, `ci:`, `chore:`). The PR title must follow it too.
 - One logical change per PR. Fill in the PR template, including how you tested.
+- A change that breaks things for existing users (a removed feature, a higher
+  minimum OS version, saved history that can no longer be read) is breaking:
+  add `!` (`feat!:`), which releases a new major version.
 
 ## Never do these
 

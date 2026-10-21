@@ -7,8 +7,8 @@ This guide explains how to get set up and how changes get from your computer
 into Glossa. If anything here is confusing, that's a bug in this guide — please
 open an issue or ask in [Discussions](https://github.com/Shreya20002/glossa/discussions).
 
-> **Project status:** pre-release. The app is being built step by step; all
-> five v1 features work today, and the first release is being prepared.
+> **Project status:** version 1. All five v1 features work, and releases
+> are automatic: your merged PR's title ends up in the changelog.
 > [docs/architecture.md](docs/architecture.md) explains how the pieces fit
 > together.
 
@@ -72,15 +72,16 @@ pnpm dev
 
 ### Everyday commands
 
-| Command             | What it does                                                                                    |
-| ------------------- | ----------------------------------------------------------------------------------------------- |
-| `pnpm dev`          | Run the app with live reload.                                                                   |
-| `pnpm check`        | **Run before every PR.** Formatting, lint, type-check and unit tests — the same checks CI runs. |
-| `pnpm format`       | Auto-fix formatting.                                                                            |
-| `pnpm test`         | Unit tests only (fast).                                                                         |
-| `pnpm test:e2e`     | End-to-end tests: launches the real app with a fake microphone.                                 |
-| `pnpm eval`         | Accuracy benchmark on real meetings: how many fillers and words Glossa catches.                 |
-| `pnpm build:unpack` | Build a runnable app folder without making an installer.                                        |
+| Command                | What it does                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm dev`             | Run the app with live reload.                                                                   |
+| `pnpm check`           | **Run before every PR.** Formatting, lint, type-check and unit tests — the same checks CI runs. |
+| `pnpm format`          | Auto-fix formatting.                                                                            |
+| `pnpm test`            | Unit tests only (fast).                                                                         |
+| `pnpm test:e2e`        | End-to-end tests: launches the real app with a fake microphone.                                 |
+| `pnpm eval`            | Accuracy benchmark on real meetings: how many fillers and words Glossa catches.                 |
+| `pnpm build:unpack`    | Build a runnable app folder without making an installer.                                        |
+| `pnpm build:installer` | Build an installer for your OS (`.exe` or `.dmg`) into `release/`.                              |
 
 ## Making a change
 
@@ -105,8 +106,8 @@ next version number and write the changelog.
 
 | Type             | Use it for                                | Effect on version             |
 | ---------------- | ----------------------------------------- | ----------------------------- |
-| `feat:`          | A new user-facing feature                 | minor (0.**1**.0 → 0.**2**.0) |
-| `fix:`           | A bug fix                                 | patch (0.1.**0** → 0.1.**1**) |
+| `feat:`          | A new user-facing feature                 | minor (1.**0**.0 → 1.**1**.0) |
+| `fix:`           | A bug fix                                 | patch (1.0.**0** → 1.0.**1**) |
 | `docs:`          | Documentation only                        | none                          |
 | `test:`          | Adding or fixing tests                    | none                          |
 | `refactor:`      | Code change that doesn't change behaviour | none                          |
@@ -116,7 +117,8 @@ next version number and write the changelog.
 
 Examples: `feat: count "you know" as a filler`, `fix: overlay hidden behind
 fullscreen apps`, `docs: explain mic permission on macOS`.
-A breaking change adds `!`: `feat!: rename report card fields`.
+A breaking change for existing users adds `!` and bumps the major version
+(**1**.0.0 → **2**.0.0): `feat!: rename report card fields`.
 
 ## Golden rules
 

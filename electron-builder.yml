@@ -15,11 +15,28 @@ directories:
 
 # Only the compiled output goes into the app; source code and tests stay out.
 # (Packages listed under "dependencies" in package.json are added automatically.)
+# Keep every pattern in this one list. A `files` list under win: or mac: that
+# only excludes things makes electron-builder pack the whole project folder.
+# ${platform} becomes win32 or darwin, and ${arch} x64 or arm64, for each build.
 files:
   - out/**
   # transformers.js has the bits of onnxruntime-web it needs built in, and in
   # Glossa it runs on onnxruntime-node; the separate package is never loaded.
   - '!**/node_modules/onnxruntime-web/**'
+  # onnxruntime ships binaries for every OS and processor; keep only this build's.
+  - '!node_modules/onnxruntime-node/bin/napi-v*/!(${platform})/**'
+  - '!node_modules/onnxruntime-node/bin/napi-v*/${platform}/!(${arch})/**'
+  # Windows: GPU libraries (DirectML, and shader compilers for WebGPU) that
+  # onnxruntime loads only when asked to use the graphics card. Glossa uses the
+  # CPU, so they'd never load.
+  - '!node_modules/onnxruntime-node/bin/napi-v*/win32/*/{DirectML,dxcompiler,dxil}.dll'
+  # macOS: a second, identical copy of the library under its full version
+  # number. onnxruntime loads libonnxruntime.1.dylib.
+  - '!node_modules/onnxruntime-node/bin/napi-v*/darwin/*/libonnxruntime.*.*.*.dylib'
+
+# Chromium's own menus and messages in ~55 languages (~50 MB). Glossa's
+# interface is in English, so keep just English.
+electronLanguages: [en-US]
 
 # The AI models (downloaded by `pnpm fetch-models`) ship next to the app, in
 # its "resources" folder, so Glossa works offline from the first launch.
@@ -40,24 +57,30 @@ asarUnpack:
 npmRebuild: false
 
 win:
-  target: nsis
-  # onnxruntime ships binaries for every OS; keep only the Windows ones.
-  files:
-    - '!node_modules/onnxruntime-node/bin/napi-v*/{darwin,linux}/**'
+  target:
+    - target: nsis
+      arch: x64
 nsis:
   artifactName: ${productName}-${version}-setup.${ext}
 
 mac:
-  target: dmg
-  category: public.app-category.productivity
   # onnxruntime has no Intel Mac build, so Glossa supports Apple Silicon only.
-  files:
-    - '!node_modules/onnxruntime-node/bin/napi-v*/{win32,linux}/**'
+  target:
+    - target: dmg
+      arch: arm64
+  category: public.app-category.productivity
+  # Without a paid Apple Developer certificate, the app is signed "ad hoc":
+  # enough for Apple Silicon Macs to run it, though macOS still asks people to
+  # confirm the first time they open it (README → Install). Hardened runtime
+  # only matters for Apple's notarization, which needs that certificate.
+  identity: '-'
+  hardenedRuntime: false
   # The text macOS shows when asking the user for microphone access.
   extendInfo:
     NSMicrophoneUsageDescription: Glossa listens to your microphone to coach you while you speak. Audio is analysed on this Mac and is never saved or sent anywhere.
 dmg:
   artifactName: ${productName}-${version}-${arch}.${ext}
 
-# Publishing to GitHub Releases is configured in the release workflow (Step 7).
+# electron-builder never uploads anything itself. The release workflow
+# (.github/workflows/release.yml) attaches the installers to the GitHub release.
 publish: null

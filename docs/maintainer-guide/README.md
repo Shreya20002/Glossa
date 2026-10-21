@@ -14,8 +14,8 @@ Contributors don't need to read this; they have [CONTRIBUTING.md](../../CONTRIBU
 | 02  | [Git and GitHub](02-git-and-github.md)                       | Before your first push. Commits, branches, PRs, and _why we squash-merge_. |
 | 03  | [File-by-file tour](03-file-by-file-tour.md)                 | Any time you wonder "what is this file?"                                   |
 | 04  | [CI explained](04-ci-explained.md)                           | Before your first PR. Every GitHub Actions workflow, line by line.         |
-| 05  | Releasing                                                    | _Coming in Step 7_ — how clicking "Merge" ships installers.                |
-| 06  | Reviewing and triage                                         | _Coming in Step 7_ — handling issues and PRs, saying no kindly.            |
+| 05  | [Releasing](05-releasing.md)                                 | Before your first release. How merging the release PR ships installers.    |
+| 06  | [Reviewing and triage](06-reviewing-and-triage.md)           | When the first issues and PRs arrive. Handling them, and saying no kindly. |
 | 07  | [GitHub settings checklist](07-github-settings-checklist.md) | Right after you create the GitHub repo. Click-by-click.                    |
 
 ## Five words you'll see everywhere
@@ -42,6 +42,6 @@ Glossa is built in eight reviewed steps, each ending in one commit:
 | 4    | **Filler-word counter** + accuracy benchmark                            |
 | 5    | **Monologue alert**                                                     |
 | 6    | **Post-call report card**                                               |
-| 7    | Release pipeline + v0.1.0                                               |
+| 7    | Release pipeline + v1.0.0                                               |
 
 This guide grows with each step: when a new file appears, chapter 03 explains it.

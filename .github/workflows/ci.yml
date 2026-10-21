@@ -103,12 +103,17 @@ jobs:
       - name: Fetch AI models
         run: pnpm fetch-models
 
-      # Compile and package an unpacked app folder (no installer, no signing).
+      # Compile and package an unpacked app folder (no installer).
       - name: Build unpacked app
         run: pnpm build:unpack
         env:
-          # No signing certificates in CI yet, so don't go looking for any.
+          # No paid signing certificates, so don't go looking for any.
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          # electron-builder skips signing in pull requests, to keep signing
+          # secrets away from strangers' code. Glossa's macOS signature is
+          # "ad hoc" and uses no secrets, so sign here too and test the app
+          # exactly as it will ship.
+          CSC_FOR_PULL_REQUEST: true
 
       # Launch the packaged app exactly as users would, feed it speech through a
       # fake microphone, and check the overlay. See e2e/session.spec.ts.

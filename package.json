@@ -21,6 +21,7 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "build:unpack": "electron-vite build && electron-builder --dir",
+    "build:installer": "electron-vite build && electron-builder --publish never",
     "preview": "electron-vite preview",
     "fetch-models": "node scripts/fetch-models.mjs",
     "typecheck": "tsc --noEmit --composite false -p tsconfig.node.json && tsc --noEmit --composite false -p tsconfig.web.json && tsc --noEmit --composite false -p tsconfig.e2e.json",

@@ -1,0 +1,108 @@
+# CD = "continuous delivery": turning merged pull requests into a release
+# people can download. Walkthrough: docs/maintainer-guide/05-releasing.md
+#
+# 1. After every push to main, release-please reads the commit messages since
+#    the last release and keeps one "release PR" open, with the next version
+#    number and the changelog.
+# 2. When you merge that PR, release-please tags the version and publishes a
+#    GitHub release. The "installers" jobs then build Glossa on Windows and
+#    macOS, test it, and attach the installers to that release.
+
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+# Read-only unless a job asks for more, below.
+permissions:
+  contents: read
+
+# One release run at a time, and never cancel one halfway through publishing.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Release PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # commit the changelog and version, create tags and releases
+      issues: write # create the labels it puts on release PRs
+      pull-requests: write # open and update the release PR
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      # Settings live in release-please-config.json and .release-please-manifest.json.
+      # Third-party action: pinned to an exact commit (see 04-ci-explained.md).
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  installers:
+    name: Installer (${{ matrix.os }})
+    needs: release-please
+    # Only when merging the release PR has just published a new version.
+    if: needs.release-please.outputs.release_created == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: write # attach the installers to the release
+    steps:
+      # Build exactly the tagged version.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      # No caches: what people download is always built from a clean slate.
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: pnpm install --frozen-lockfile
+
+      # Downloads the models and verifies every checksum.
+      - name: Fetch AI models
+        run: pnpm fetch-models
+
+      # The Windows .exe installer or the macOS .dmg (see electron-builder.yml).
+      - name: Build installer
+        run: pnpm build:installer
+        env:
+          # No paid signing certificates: Windows gets an unsigned installer and
+          # macOS an ad-hoc signature, so don't look for any.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      # The same end-to-end test as CI, on the app inside this installer.
+      - name: End-to-end tests (packaged app)
+        run: pnpm exec playwright test
+        env:
+          GLOSSA_E2E_PACKAGED: '1'
+          GLOSSA_E2E_DIAGNOSTICS: '1'
+
+      - name: Publish e2e diagnostics
+        if: always()
+        run: node e2e/support/publishDiagnostics.mjs
+
+      - name: Attach installer to the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          shopt -s nullglob
+          installers=(release/*/*-setup.exe release/*/*.dmg)
+          if [ ${#installers[@]} -eq 0 ]; then
+            echo "::error::No installer was built."
+            exit 1
+          fi
+          gh release upload "$TAG" "${installers[@]}" --clobber --repo "$GITHUB_REPOSITORY"

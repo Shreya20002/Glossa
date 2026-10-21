@@ -10,22 +10,24 @@ sends anything anywhere.
 [![CI](https://github.com/Shreya20002/glossa/actions/workflows/ci.yml/badge.svg)](https://github.com/Shreya20002/glossa/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-> 🚧 **Status: pre-release.** Glossa is being built in the open. There is no
-> installer yet — watch or star the repo to hear when v0.1.0 ships.
+> 🌱 **Status: new.** Version 1.0 is the first release, with all five
+> features below. Found a rough edge?
+> [Open an issue](https://github.com/Shreya20002/glossa/issues/new/choose).
 
-<!-- Demo GIF goes here once the overlay exists (Step 7 of the build plan). -->
+<!-- A short demo GIF goes here. Keep images out of the repo: drag the GIF into
+     any GitHub issue or PR comment, then paste the link GitHub gives you here. -->
 
 ## What it does
 
 Glossa v1 does five things, and does them well:
 
-| Feature                      | What you see                                                                                                                 |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 🎙️ **Talk-time meter**       | How much of the session you've spent speaking, plus a "speaking now" dot.                                                    |
-| ⏱️ **Pace**                  | Your words per minute, with a gentle hint when you're rushing or dragging.                                                   |
-| 🔁 **Filler-word counter**   | "um", "uh", "you know", "basically"… counted live, with your top offenders.                                                  |
-| 🗣️ **Monologue alert**       | A soft pulse when you've been talking for over a minute without a break.                                                     |
-| 📋 **Post-call report card** | A summary of the session compared with last time — e.g. _Filler words: 32 → 9_. Copy it as an image and share your progress. |
+| Feature                      | What you see                                                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎙️ **Talk-time meter**       | How much of the session you've spent speaking, plus a "speaking now" dot.                                                                               |
+| ⏱️ **Pace**                  | Your words per minute, with a gentle hint when you're rushing or dragging.                                                                              |
+| 🔁 **Filler-word counter**   | "um", "uh", "you know", "basically"… counted live, with your top offenders.                                                                             |
+| 🗣️ **Monologue alert**       | A soft pulse when you've been talking for over a minute without a break.                                                                                |
+| 📋 **Post-call report card** | Each session compared with the last — e.g. _Filler words: 1.6/min, ↓ from 2.6 · better_ — plus your trend. Copy it as an image and share your progress. |
 
 **How accurate is it?** On recordings of real meetings, Glossa catches
 **99% of ums and uhs** (96% of what it reports is right). The benchmark is open:
@@ -48,12 +50,40 @@ That's it — on purpose. New features get added when users ask for them
 
 ## Install
 
-Not released yet. When v0.1.0 ships, installers for **Windows 10/11** and
-**macOS on Apple Silicon** (M1 or newer) will be on the [Releases page](https://github.com/Shreya20002/glossa/releases).
+Download the installer for your computer from the
+[latest release](https://github.com/Shreya20002/glossa/releases/latest):
 
-> **Heads-up:** early releases are not code-signed, so Windows and macOS will
-> show a warning the first time you open Glossa. Instructions for getting past
-> it safely will be included with the release.
+| Your computer                                       | Download                     |
+| --------------------------------------------------- | ---------------------------- |
+| **Windows** 10 or 11 (64-bit)                       | `Glossa-<version>-setup.exe` |
+| **Mac** with Apple Silicon (M1 or newer), macOS 13+ | `Glossa-<version>-arm64.dmg` |
+
+Intel Macs aren't supported: the speech engine Glossa uses has no Intel build.
+
+**Why your computer warns you, and what to do.** Operating systems fully trust
+apps that are signed with a paid certificate. Glossa is free and has no budget
+for one, so you'll see a warning the first time you open it. Every installer is
+built by GitHub from the public source code of a tagged release, and you can
+read [exactly how](.github/workflows/release.yml).
+
+- **Windows:** run the installer. If you see _"Windows protected your PC"_,
+  click **More info**, then **Run anyway**. Glossa installs just for you (no
+  admin password) and opens. If it can't hear you, turn on **Settings →
+  Privacy & security → Microphone → Let desktop apps access your microphone**.
+- **Mac:** open the `.dmg` and drag **Glossa** into **Applications**, then open
+  it. macOS says it can't verify Glossa: click **Done**, open **System Settings
+  → Privacy & Security**, scroll down, click **Open Anyway** next to the
+  message about Glossa, and confirm. (On macOS 13 or 14 you can instead
+  Control-click Glossa in Applications and choose **Open**.) Then allow
+  microphone access when asked.
+
+You only do this once. Glossa never checks for updates (it never goes online);
+to hear about new versions, click **Watch → Custom → Releases** on this page.
+
+**Uninstalling:** on Windows, use **Settings → Apps → Installed apps**; on a
+Mac, drag Glossa from Applications to the Trash. Your session history stays in
+`%APPDATA%\Glossa` or `~/Library/Application Support/Glossa` until you delete
+that folder.
 
 **Tip:** use headphones. Glossa measures _your_ voice from your microphone; if
 the other people on your call come out of your speakers, the mic hears them too.
