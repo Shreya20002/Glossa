@@ -132,8 +132,9 @@ contributors find issues in the part they know.
 ## 8. ⏳ Social preview (after v1.0.0)
 
 **Settings → General → Social preview** lets you upload a 1280×640 image. It's
-what shows up when someone shares the repo link on LinkedIn or X. A screenshot
-of the report card on a plain background works well. It's uploaded to GitHub,
+what shows up when someone shares the repo link on LinkedIn or X. The app icon
+(`build/icon.png`) next to a screenshot of the report card, on a plain
+background, works well. It's uploaded to GitHub,
 not committed to the repo.
 
 ## 9. Settings → Actions → General (before your first release)

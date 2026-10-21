@@ -352,7 +352,8 @@ compiled code in `out/` and the runtime packages. Each installer keeps just its
 own platform's onnxruntime binaries (without GPU libraries Glossa never loads)
 and Chromium's English resources; the Windows installer is about 130 MB. Adding
 a native package? Check what it ships for other platforms and trim it the same
-way. Releases are built by `.github/workflows/release.yml` (see the
+way. The app icons are drawn from `build/icon.svg` by `pnpm icon`.
+Releases are built by `.github/workflows/release.yml` (see the
 maintainer guide, chapter 05).
 
 ## Testing at each layer
