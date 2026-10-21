@@ -6,6 +6,12 @@ const run = promisify(execFile)
 
 /** Spoken sentences, each followed by this much silence. */
 export const PAUSE_MS = 4_000
+/**
+ * Silence before the first sentence. Chromium's audio system takes a moment
+ * to settle after the microphone opens, and speech in that moment can come out
+ * garbled, so the clip's first words would often be lost.
+ */
+export const LEAD_IN_MS = 2_500
 const SENTENCES = [
   'Thanks for joining today. Um, I want to walk you through the plan for the next quarter, and then leave plenty of time for questions.',
   'First, we will focus on the onboarding flow, because that is where most new users get stuck.',
@@ -19,7 +25,7 @@ const SENTENCES = [
 export async function createSpeechClip(path: string): Promise<void> {
   if (process.platform === 'win32') {
     const breakTag = `<break time="${PAUSE_MS}ms"/>`
-    const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">${SENTENCES.map((s) => s + breakTag).join('')}</speak>`
+    const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><break time="${LEAD_IN_MS}ms"/>${SENTENCES.map((s) => s + breakTag).join('')}</speak>`
     const ssmlPath = `${path}.ssml`
     await writeFile(ssmlPath, ssml)
     const script = [
@@ -34,7 +40,7 @@ export async function createSpeechClip(path: string): Promise<void> {
     return
   }
   if (process.platform === 'darwin') {
-    const text = SENTENCES.map((s) => `${s} [[slnc ${PAUSE_MS}]]`).join(' ')
+    const text = `[[slnc ${LEAD_IN_MS}]] ${SENTENCES.map((s) => `${s} [[slnc ${PAUSE_MS}]]`).join(' ')}`
     await run('say', ['-o', path, '--file-format=WAVE', '--data-format=LEI16@16000', text])
     return
   }
