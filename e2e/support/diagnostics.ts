@@ -1,6 +1,7 @@
 import { appendFile } from 'node:fs/promises'
 import type { ElectronApplication, Page } from '@playwright/test'
 import { recentProcessOutput } from './launch'
+import { LEAD_IN_MS } from './speechClip'
 
 /**
  * Prints what each window shows and measures the fake microphone directly,
@@ -38,9 +39,15 @@ export async function printDiagnostics(
 /** Where diagnostics are saved for CI to publish. */
 const DIAGNOSTICS_FILE = 'test-results/e2e-diagnostics.txt'
 
-/** Opens the (fake) microphone for two seconds and reports what it hears. */
+/**
+ * How long the probe listens. Opening the microphone can start the clip from
+ * the beginning, so listen past its silent lead-in, then to 2 s of speech.
+ */
+const PROBE_LISTEN_MS = LEAD_IN_MS + 2_000
+
+/** Opens the (fake) microphone and reports what it hears. */
 function probeMicrophone(page: Page): Promise<string> {
-  return page.evaluate(async () => {
+  return page.evaluate(async (listenMs) => {
     const timeout = (ms: number, label: string) =>
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error(label)), ms))
     try {
@@ -57,7 +64,7 @@ function probeMicrophone(page: Page): Promise<string> {
       const startedAt = context.currentTime
       const samples = new Float32Array(analyser.fftSize)
       let peak = 0
-      for (let i = 0; i < 20; i++) {
+      for (let listenedMs = 0; listenedMs < listenMs; listenedMs += 100) {
         await new Promise((resolve) => setTimeout(resolve, 100))
         analyser.getFloatTimeDomainData(samples)
         for (const value of samples) peak = Math.max(peak, Math.abs(value))
@@ -65,13 +72,13 @@ function probeMicrophone(page: Page): Promise<string> {
       const result =
         `inputs [${inputs.join(', ')}], track "${stream.getAudioTracks()[0]?.label ?? '-'}", ` +
         `context ${context.state} at ${context.sampleRate} Hz, ` +
-        `audio clock advanced ${(context.currentTime - startedAt).toFixed(2)} s in 2 s, ` +
-        `peak ${peak.toFixed(2)}`
+        `audio clock advanced ${(context.currentTime - startedAt).toFixed(2)} s ` +
+        `in ${(listenMs / 1000).toFixed(1)} s, peak ${peak.toFixed(2)}`
       for (const track of stream.getTracks()) track.stop()
       await context.close()
       return result
     } catch (error) {
       return `failed: ${error instanceof Error ? error.message : String(error)}`
     }
-  })
+  }, PROBE_LISTEN_MS)
 }
