@@ -13,9 +13,9 @@ processing runs locally with prebuilt ONNX models.
 
 **Status:** v1. All five v1 features work end to end, and 1.0.0 is the first
 release. Releases are automated: release-please picks versions from commit
-messages, and
-`.github/workflows/release.yml` builds the installers. Some directories below
-don't exist yet; don't create them unless your task needs them.
+messages, and `.github/workflows/release.yml` builds the installers. Some
+directories below don't exist yet; don't create them unless your task needs
+them.
 
 **How it works:** read [docs/architecture.md](docs/architecture.md) before changing `src/`.
 
@@ -32,6 +32,7 @@ don't exist yet; don't create them unless your task needs them.
 | `pnpm test:e2e`        | Build, then end-to-end tests (Playwright drives Electron; Chromium's fake mic plays OS text-to-speech). Windows/macOS only.                                       |
 | `pnpm build:unpack`    | Build a runnable, unpacked app into `release/` (what CI's build job runs).                                                                                        |
 | `pnpm build:installer` | Build an installer for your OS (`.exe` or `.dmg`) into `release/`, as the release workflow does.                                                                  |
+| `pnpm icon`            | Redraw the app icons from `build/icon.svg` after editing it. Commit the SVG and both PNGs.                                                                        |
 | `pnpm eval`            | Filler/word accuracy benchmark on real meetings (downloads ~22 MB). Run it when changing fillers, chunking or the Whisper prompt. Never tune on the held-out set. |
 
 ## Layout
@@ -44,6 +45,7 @@ src/core/      PURE TypeScript metrics: talk-time, pace, fillers, monologue, rep
 src/renderer/  React UIs: overlay/ and app/; audio/ holds the AudioWorklet
 src/shared/    Types shared across processes (IPC messages)
 scripts/       Dev scripts (e.g. fetch-models with pinned URLs + SHA-256)
+build/        App icon: icon.svg (the source) and the PNGs `pnpm icon` draws from it
 stubs/         Stand-in packages (sharp: transformers.js needs it to load; Glossa has no images)
 e2e/           Playwright end-to-end tests
 eval/          Filler-detection benchmark clips and expected counts
@@ -109,7 +111,9 @@ config.
 - Edit `CHANGELOG.md`, version numbers, or release-please files by hand.
 - Change `LICENSE`, `NOTICE`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, or GitHub
   workflows unless the task is explicitly about them.
-- Commit `models/`, build output, secrets, or binary files.
+- Commit `models/`, build output, secrets, or binary files. The one exception
+  is the app icon: `build/icon.png` and `build/icon-windows.png`, drawn from
+  `build/icon.svg` by `pnpm icon`.
 - Skip, disable, or weaken CI checks, lint rules, or tests.
 
 When something is ambiguous, stop and ask (or explain the open question in the

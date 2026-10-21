@@ -56,10 +56,14 @@ asarUnpack:
 # Glossa uses only prebuilt native packages, so never try to compile anything.
 npmRebuild: false
 
+# App icons, drawn from build/icon.svg by `pnpm icon`. electron-builder turns
+# each PNG into the .ico or .icns the platform needs.
 win:
   target:
     - target: nsis
       arch: x64
+  # Just the tile, filling the square, so it stays legible in the taskbar.
+  icon: build/icon-windows.png
 nsis:
   artifactName: ${productName}-${version}-setup.${ext}
 
@@ -69,6 +73,8 @@ mac:
     - target: dmg
       arch: arm64
   category: public.app-category.productivity
+  # With the margin and shadow macOS's icon grid expects.
+  icon: build/icon.png
   # Without a paid Apple Developer certificate, the app is signed "ad hoc":
   # enough for Apple Silicon Macs to run it, though macOS still asks people to
   # confirm the first time they open it (README → Install). Hardened runtime
