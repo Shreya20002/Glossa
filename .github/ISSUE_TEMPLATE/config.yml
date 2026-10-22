@@ -7,8 +7,8 @@ blank_issues_enabled: false
 # the right place instead of becoming issues.
 contact_links:
   - name: Ask a question or share an idea
-    url: https://github.com/Shreya20002/glossa/discussions
+    url: https://github.com/dotslashshreya/Glossa/discussions
     about: Questions, help with setup, and open-ended ideas go to Discussions.
   - name: Report a security vulnerability
-    url: https://github.com/Shreya20002/glossa/security/advisories/new
+    url: https://github.com/dotslashshreya/Glossa/security/advisories/new
     about: Please report security issues privately, not as public issues.

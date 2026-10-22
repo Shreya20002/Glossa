@@ -5,7 +5,7 @@ matters — whether it's a typo fix, a bug report, a test recording, or a featur
 
 This guide explains how to get set up and how changes get from your computer
 into Glossa. If anything here is confusing, that's a bug in this guide — please
-open an issue or ask in [Discussions](https://github.com/Shreya20002/glossa/discussions).
+open an issue or ask in [Discussions](https://github.com/dotslashshreya/Glossa/discussions).
 
 > **Project status:** version 1. All five v1 features work, and releases
 > are automatic: your merged PR's title ends up in the changelog.
@@ -26,8 +26,8 @@ open an issue or ask in [Discussions](https://github.com/Shreya20002/glossa/disc
   openly licensed sources; see [eval/README.md](eval/README.md).
 - **Improve docs** — if you got stuck, the next person will too.
 - **Write code** — look for issues labelled
-  [`good first issue`](https://github.com/Shreya20002/glossa/labels/good%20first%20issue)
-  or [`help wanted`](https://github.com/Shreya20002/glossa/labels/help%20wanted).
+  [`good first issue`](https://github.com/dotslashshreya/Glossa/labels/good%20first%20issue)
+  or [`help wanted`](https://github.com/dotslashshreya/Glossa/labels/help%20wanted).
 
 ## Before you start coding
 

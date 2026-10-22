@@ -6,12 +6,12 @@
   "description": "An invisible speech coach in your corner: offline, private, open source.",
   "license": "Apache-2.0",
   "author": "The Glossa Authors",
-  "homepage": "https://github.com/Shreya20002/glossa",
+  "homepage": "https://github.com/dotslashshreya/Glossa",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Shreya20002/glossa.git"
+    "url": "git+https://github.com/dotslashshreya/Glossa.git"
   },
-  "bugs": "https://github.com/Shreya20002/glossa/issues",
+  "bugs": "https://github.com/dotslashshreya/Glossa/issues",
   "main": "./out/main/index.js",
   "engines": {
     "node": ">=22.12.0"
