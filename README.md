@@ -2,7 +2,7 @@
 
 # Glossa
 
-**An invisible speech coach just for you.**
+**An invisible speech coach in your corner.**
 
 Glossa sits quietly on your screen while you talk — in interviews, meetings,
 sales calls, classes, or practice runs — and tells you, live, how you're doing.

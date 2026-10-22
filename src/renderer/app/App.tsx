@@ -118,7 +118,7 @@ export function App() {
     <main className="home">
       <header>
         <h1 className="wordmark">Glossa</h1>
-        <p className="tagline">An invisible speech coach just for you.</p>
+        <p className="tagline">An invisible speech coach in your corner.</p>
       </header>
 
       {running ? (
