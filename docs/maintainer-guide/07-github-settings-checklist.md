@@ -46,7 +46,7 @@ your email"_, then _"Your first push"_.
 
 On the repo's main page, click the ⚙️ next to **About**:
 
-- **Description:** `An invisible speech coach just for you: offline, private, open source.`
+- **Description:** `An invisible speech coach in your corner: offline, private, open source.`
 - **Topics:** `electron`, `typescript`, `speech-recognition`, `whisper`,
   `public-speaking`, `offline-first`, `privacy`, `desktop-app`
 - **Why:** topics make the repo show up in GitHub search and topic pages.
