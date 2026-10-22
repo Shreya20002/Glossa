@@ -9,12 +9,12 @@ sales calls, classes, or practice runs — and tells you, live, how you're doing
 It listens only to your microphone, runs entirely on your computer, and never
 sends anything anywhere.
 
-[![CI](https://github.com/Shreya20002/glossa/actions/workflows/ci.yml/badge.svg)](https://github.com/Shreya20002/glossa/actions/workflows/ci.yml)
+[![CI](https://github.com/dotslashshreya/Glossa/actions/workflows/ci.yml/badge.svg)](https://github.com/dotslashshreya/Glossa/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 > 🌱 **Status: new.** Version 1.0 is the first release, with all five
 > features below. Found a rough edge?
-> [Open an issue](https://github.com/Shreya20002/glossa/issues/new/choose).
+> [Open an issue](https://github.com/dotslashshreya/Glossa/issues/new/choose).
 
 <!-- A short demo GIF goes here. Keep images out of the repo: drag the GIF into
      any GitHub issue or PR comment, then paste the link GitHub gives you here. -->
@@ -53,7 +53,7 @@ That's it — on purpose. New features get added when users ask for them
 ## Install
 
 Download the installer for your computer from the
-[latest release](https://github.com/Shreya20002/glossa/releases/latest):
+[latest release](https://github.com/dotslashshreya/Glossa/releases/latest):
 
 | Your computer                                       | Download                     |
 | --------------------------------------------------- | ---------------------------- |
@@ -101,7 +101,7 @@ Glossa v1 is deliberately small. Ideas that are **not in v1 (yet)**:
 - More settings (pace targets, monologue length)
 
 Want one of these, or something else? Upvote an existing
-[feature request](https://github.com/Shreya20002/glossa/issues?q=is%3Aissue+label%3Aenhancement)
+[feature request](https://github.com/dotslashshreya/Glossa/issues?q=is%3Aissue+label%3Aenhancement)
 or open a new one. The most-requested ideas get built next.
 
 ## Contributing

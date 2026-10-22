@@ -6,6 +6,8 @@
 
 # A permanent, unique ID for the app. Windows and macOS use it to recognise
 # Glossa across updates, so it must never change after the first release.
+# It keeps the GitHub username Glossa started under (Shreya20002, now
+# dotslashshreya) on purpose: it's a name, not a link.
 appId: io.github.shreya20002.glossa
 productName: Glossa
 copyright: Copyright © 2026 The Glossa Authors
